@@ -454,3 +454,36 @@
 .sched-row:last-child {
   border-bottom: 0;
 }
+.sched-time {
+  width: 62px;
+  flex: none;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-size: 13px;
+}
+.matrix th {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  padding: 0 4px 4px;
+}
+.matrix td {
+  padding: 8px 4px;
+  text-align: center;
+}
+.matrix td:first-child {
+  text-align: left;
+  font-weight: 650;
+}
+.thread-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
