@@ -56,3 +56,13 @@ Tip: open the page in **two windows** — one as Alex, one as Dr. Marsh. Message
 * **Twin** (`src/engine/twin.js`) maps each person's signals to *relative, proxy* region estimates (0–100 % of their own range). These are **not measurements of brain activity**; the brain shown is a generic template, not the patient's scan.
 * All people, signals, places and the brain are **synthetic**.
 
+## Principles baked in
+
+1. **Passive intelligence** — nothing required; every check-in is optional.
+2. **Personal understanding** — only ever compared with yourself.
+3. **Meaningful intelligence** — what changed, why, and how sure we are.
+4. **Human-centred support** — one gentle suggestion at a time; people stay in the loop.
+5. **Trust & control** — consent, audit trails and human oversight are in the architecture.
+
+The five tests (zero-effort, worst-day, guilt, human, “so what”) are applied to every feature: e.g. no streaks or scores (guilt), crisis help is one tap on the worst day, and every insight links to a gentle action.
+
