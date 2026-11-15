@@ -62,3 +62,82 @@ function EchoArt() {
   );
 }
 
+// ───────────────────────────── Leaf bloom (reaction)
+export function GameReact() {
+  const { analysis } = usePatientData('alex');
+  const [phase, setPhase] = useState('intro'); // intro | wait | go | early | result
+  const [round, setRound] = useState(0);
+  const [times, setTimes] = useState([]);
+  const [last, setLast] = useState(null);
+  const t0 = useRef(0);
+  const tm = useRef(null);
+  const ROUNDS = 5;
+
+  const arm = () => {
+    setPhase('wait');
+    clearTimeout(tm.current);
+    tm.current = setTimeout(() => { t0.current = performance.now(); setPhase('go'); engine.chime(88, 0.03); }, 1400 + Math.random() * 2800);
+  };
+  useEffect(() => () => clearTimeout(tm.current), []);
+
+  const tap = () => {
+    if (phase === 'wait') { clearTimeout(tm.current); haptic(6); setPhase('early'); return; }
+    if (phase === 'go') {
+      const ms = performance.now() - t0.current;
+      haptic(18);
+      setLast(ms);
+      const next = [...times, ms];
+      setTimes(next);
+      if (next.length >= ROUNDS) {
+        const avg = mean(next);
+        actions.addCognitive({ game: 'react', ms: avg });
+        setPhase('result');
+      } else { setRound(next.length); setPhase('between'); setTimeout(arm, 900); }
+    }
+  };
+
+  const avg = times.length ? mean(times) : 0;
+  const s = analysis.signals.reaction;
+  const rel = !s ? null : avg < s.baseMed - s.noise ? 'a touch quicker than your usual' : avg > s.baseMed + s.noise ? 'a little slower than your usual — it’s a very ordinary thing, especially on a tired day' : 'right around your usual';
+
+  return (
+    <Screen tabs={false} bg="linear-gradient(180deg,#e2eed4,#eef2e2 60%,var(--bg))" theme={undefined} noScroll>
+      <TopBar onBack={() => { clearTimeout(tm.current); back('/p/games'); }} sub="Leaf bloom" title={phase === 'result' ? 'All done' : `Round ${Math.min(round + 1, ROUNDS)} of ${ROUNDS}`} />
+      <div className="game-stage" onPointerDown={phase === 'wait' || phase === 'go' ? tap : undefined} style={{ touchAction: 'manipulation' }}>
+        <AnimatePresence mode="wait">
+          {phase === 'intro' && (
+            <motion.div key="i" className="center stack" style={{ alignItems: 'center' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div style={{ width: 160, height: 160 }}><Bloom /></div>
+              <h2 className="h2 mt-16">Tap the moment it blooms.</h2>
+              <p className="t-sm t-soft mt-8" style={{ maxWidth: 260 }}>If you tap too early, no worries — we just try again.</p>
+              <Btn kind="primary" size="lg" className="mt-24" onClick={arm} icon="Play">Start</Btn>
+            </motion.div>
+          )}
+          {(phase === 'wait' || phase === 'go' || phase === 'between') && (
+            <motion.div key="g" className="center stack" style={{ alignItems: 'center' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <div style={{ width: 240, height: 240 }}><Bloom open={phase === 'go'} /></div>
+              <h2 className="h2 mt-8">{phase === 'go' ? 'Now!' : phase === 'between' ? `${Math.round(last)} ms` : 'Wait for it…'}</h2>
+              <p className="t-sm t-soft mt-4">{phase === 'wait' ? 'Breathe. Let the bud rest.' : phase === 'between' ? 'Lovely.' : 'Tap anywhere'}</p>
+            </motion.div>
+          )}
+          {phase === 'early' && (
+            <motion.div key="e" className="center stack" style={{ alignItems: 'center' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Koko size={110} mood="caring" />
+              <h2 className="h2 mt-12">A little early — no worries.</h2>
+              <Btn kind="primary" className="mt-16" onClick={arm}>Try again</Btn>
+            </motion.div>
+          )}
+          {phase === 'result' && (
+            <motion.div key="r" className="center stack" style={{ alignItems: 'center' }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+              <Koko size={120} mood="happy" />
+              <h2 className="h1 mt-12">{Math.round(avg)} ms</h2>
+              <p className="t-body t-soft mt-8" style={{ maxWidth: 280 }}>{rel ? `That’s ${rel}.` : 'Thanks — this helps Kokoryze learn your usual.'}</p>
+              <div className="row-flex gap-8 mt-24"><Btn kind="primary" onClick={() => back('/p/games')}>Done</Btn><Btn kind="soft" onClick={() => { setTimes([]); setRound(0); setPhase('intro'); }}>Again</Btn></div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </Screen>
+  );
+}
+
