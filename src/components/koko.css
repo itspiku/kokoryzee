@@ -1,0 +1,72 @@
+.koko {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  flex: none;
+}
+.koko svg {
+  position: relative;
+  overflow: visible;
+}
+.koko-glow {
+  position: absolute;
+  inset: 8% 6% 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(190, 228, 170, 0.55), rgba(190, 228, 170, 0) 68%);
+  filter: blur(18px);
+  animation: koko-glow 5s var(--ease-breath) infinite alternate;
+  pointer-events: none;
+}
+[data-theme='evening'] .koko-glow {
+  background: radial-gradient(circle, rgba(159, 214, 170, 0.35), rgba(159, 214, 170, 0) 68%);
+}
+@keyframes koko-glow {
+  from { transform: scale(0.92); opacity: 0.7; }
+  to { transform: scale(1.12); opacity: 1; }
+}
+.koko-body {
+  transform-origin: 100px 176px;
+  animation: koko-breathe 4.6s var(--ease-breath) infinite;
+}
+@keyframes koko-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.018, 1.035); }
+}
+.koko-sprout {
+  transform-origin: 100px 46px;
+  animation: koko-sway 5.2s var(--ease-breath) infinite alternate;
+}
+@keyframes koko-sway {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(6deg); }
+}
+.koko-shadow {
+  transform-origin: 100px 178px;
+  animation: koko-shadow 4.6s var(--ease-breath) infinite;
+}
+@keyframes koko-shadow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.85; }
+}
+.koko-z {
+  animation: koko-z 3s ease-in-out infinite;
+}
+@keyframes koko-z {
+  0%, 100% { opacity: 0.3; transform: translateY(2px); }
+  50% { opacity: 1; transform: translateY(-4px); }
+}
+.koko-heart {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  color: var(--apricot-400);
+  font-size: 22px;
+  pointer-events: none;
+  text-shadow: 0 2px 8px rgba(230, 141, 87, 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .koko-body, .koko-sprout, .koko-glow, .koko-shadow, .koko-z { animation: none; }
+}
