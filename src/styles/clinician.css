@@ -397,3 +397,60 @@
 .tabs-scroll .tab-pill-btn.on {
   color: var(--primary-ink);
 }
+.tabs-scroll .tab-pill-btn .bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--primary-2), var(--primary));
+  z-index: -1;
+  box-shadow: var(--shadow-btn);
+}
+.brief-paper {
+  background: var(--card-solid);
+  border-radius: 26px;
+  padding: 20px 20px 22px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+.brief-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 18px 0 8px;
+}
+.brief-h:first-child {
+  margin-top: 0;
+}
+.brief-li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 7px 0;
+  font-size: 14.5px;
+  line-height: 1.4;
+  border-bottom: 1px dashed var(--line);
+}
+.brief-li:last-child {
+  border-bottom: 0;
+}
+.timeline-scroll {
+  overflow-x: auto;
+  margin: 0 -20px;
+  padding: 0 20px;
+  scrollbar-width: none;
+}
+.sched-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.sched-row:last-child {
+  border-bottom: 0;
+}
