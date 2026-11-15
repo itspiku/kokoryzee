@@ -164,3 +164,58 @@ export const JOURNAL_PROMPTS = [
   { id: 'joy', title: 'Remember a joy', sub: 'Even a tiny one', icon: 'Sun', tint: 'apricot', seed: 'A small good moment today was…' },
   { id: 'shift', title: 'Shift a tough thought', sub: 'Gently, with a friend’s voice', icon: 'Wind', tint: 'lav', seed: 'The thought that keeps visiting me is…' },
 ];
+export const REFLECTION_STEPS = [
+  { q: 'What is the thought, in one sentence?', ph: 'e.g. “I’m letting everyone down.”' },
+  { q: 'How does it feel in your body?', ph: 'Heavy chest, tight jaw, tired…' },
+  { q: 'What would you say to a friend who thought this?', ph: 'Be as kind as you would be to them.' },
+  { q: 'Is there a kinder, still-honest way to say it?', ph: 'e.g. “I’m struggling, and I’m still trying.”' },
+];
+export const QUOTES = [
+  'Slow is a speed too.',
+  'Small steps still count as steps.',
+  'You don’t have to feel better to be doing better.',
+  'Rest isn’t earned. It’s allowed.',
+  'Some days, the only job is to be kind to yourself.',
+  'Growth rarely looks dramatic from the inside.',
+  'Today can be quiet and still be enough.',
+];
+export const THEME_WORDS = {
+  rest: ['sleep', 'tired', 'rest', 'nap', 'bed', 'exhaust'],
+  family: ['mum', 'mom', 'dad', 'sister', 'brother', 'family', 'kids'],
+  friends: ['friend', 'jordan', 'priya', 'call', 'text', 'chat'],
+  nature: ['walk', 'park', 'tree', 'river', 'sun', 'rain', 'garden', 'outside'],
+  work: ['work', 'job', 'boss', 'email', 'deadline'],
+  worry: ['worry', 'anxious', 'afraid', 'nervous', 'scared', 'stress'],
+  gratitude: ['grateful', 'thankful', 'glad', 'lucky', 'kind'],
+  hope: ['hope', 'better', 'tomorrow', 'proud', 'progress'],
+};
+
+// ── Check-in "weather inside" ──────────────────────────────
+export const WEATHER = [
+  { id: 'sun', label: 'Clear', mood: 5, icon: 'Sun', color: '#f2b84b' },
+  { id: 'partly', label: 'Mostly bright', mood: 4, icon: 'CloudSun', color: '#e8a964' },
+  { id: 'cloud', label: 'A bit cloudy', mood: 3, icon: 'Cloud', color: '#9fb4b0' },
+  { id: 'rain', label: 'Rainy', mood: 2, icon: 'CloudRain', color: '#7fa7c0' },
+  { id: 'storm', label: 'Stormy', mood: 1, icon: 'CloudLightning', color: '#8f86c0' },
+];
+
+// ── Circle ─────────────────────────────────────────────────
+export const CIRCLE_HUES = ['#e68d57', '#7aa774', '#8878c8', '#6aa7bd', '#d47468', '#c9a24b'];
+export const SUPPORT_MESSAGES = [
+  'Could you call me tonight?',
+  'Heavy day. No need to fix anything — just wanted you to know.',
+  'Fancy a short walk this week?',
+  'Thinking of you ❤️',
+];
+export const CIRCLE_REPLIES = {
+  mum: ['I’m here, love. I’ll call you in ten minutes.', 'Always. Kettle’s on — want me to come over?', 'Thank you for telling me. I love you.'],
+  jordan: ['Always up for a walk — Saturday morning? I’ll bring coffee.', 'Got you. No fixing, just company. Call me anytime.', 'Sending a big hug. Free after 6 if you want to talk.'],
+  priya: ['Calling you tonight. Don’t cook, I’ll bring dinner.', 'I’m glad you told me. Proud of you for reaching out.', 'Thinking of you too. Walk on the weekend?'],
+  default: ['Thanks for reaching out. I’m here.', 'Glad you told me. Want to talk later?'],
+};
+export const SEED_CIRCLE = [
+  { id: 'mum', name: 'Mum', full: 'Sarah Morgan', rel: 'Mother', hue: '#e68d57', note: 'Usually replies within the hour', perms: { okay: true, mood: false, rhythm: false } },
+  { id: 'jordan', name: 'Jordan', full: 'Jordan Reyes', rel: 'Close friend', hue: '#6aa7bd', note: 'Great for walks & a good laugh', perms: { okay: true, mood: false, rhythm: false } },
+  { id: 'priya', name: 'Priya', full: 'Priya Morgan', rel: 'Sister', hue: '#8878c8', note: 'Night owl — replies late', perms: { okay: true, mood: true, rhythm: false } },
+];
+
