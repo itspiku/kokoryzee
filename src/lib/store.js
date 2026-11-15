@@ -132,3 +132,60 @@ function seedAppts(now) {
   return out.sort((a, b) => a.t - b.t);
 }
 
+function defaultCarePlans() {
+  const approved = Object.fromEntries(INTERVENTIONS.map((i) => [i.id, true]));
+  const mk = (extra = {}) => ({
+    approved: { ...approved, ...extra.approved },
+    notes: extra.notes ?? 'Keep evening wind-down. Gentle outings only when energy allows — no targets.',
+    escalation: extra.escalation ?? 'Support request → clinician response within 2 h (working hours). Review alerts persisting ≥ 3 days → bring appointment forward.',
+    reviewT: extra.reviewT ?? null,
+    updatedAt: Date.now() - 2.5 * DAY,
+  });
+  return {
+    alex: mk(),
+    maria: mk({ approved: { games: false } }),
+    daniel: mk({ approved: { outings: false, circle: true } }),
+    priya: mk({ approved: { games: false, letter: false } }),
+    tom: mk(),
+  };
+}
+
+export function defaults(now = Date.now()) {
+  return {
+    v: VERSION,
+    role: null,
+    onboarded: false,
+    prefs: { theme: 'auto', scene: 'auto', sound: true, haptics: true, volume: 0.7 },
+    consent: {
+      wearable: { hr: true, sleep: true, activity: true, temp: false },
+      phone: { night: true, social: false, screen: false },
+      imaging: { eeg: true, mri: true },
+      circle: { share: true },
+      shareDoctor: { insights: true, checkins: true, journal: false },
+      research: false,
+    },
+    checkins: [
+      { id: uid('c'), t: now - 1 * DAY - 3 * HOUR, weather: 'partly', mood: 4 },
+      { id: uid('c'), t: now - 2 * DAY - 2 * HOUR, weather: 'cloud', mood: 3 },
+      { id: uid('c'), t: now - 3 * DAY, weather: 'cloud', mood: 3 },
+    ],
+    journal: seedJournal(now),
+    letters: seedLetters(now),
+    feedback: seedFeedback(now),
+    suggestionLog: [],
+    circle: SEED_CIRCLE,
+    threads: seedThreads(now),
+    appts: seedAppts(now),
+    alerts: seedAlerts(now),
+    audit: seedAudit(now),
+    carePlans: defaultCarePlans(),
+    twinNotes: [
+      { id: uid('n'), patientId: 'alex', t: now - 1.5 * DAY, by: 'Dr. Elena Marsh', text: 'Left DLPFC engagement proxy tracks the TMS course. Watch the sleep-timing shift before session 26.' },
+    ],
+    outings: { saved: [], done: [] },
+    cognitive: [],
+    lastScene: 'evening-meditation',
+    createdAt: now,
+  };
+}
+
