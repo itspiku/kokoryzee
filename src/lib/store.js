@@ -246,3 +246,150 @@ function subscribe(f) {
   subs.add(f);
   return () => subs.delete(f);
 }
+export function useStore(selector = (s) => s) {
+  return useSyncExternalStore(subscribe, () => selector(state));
+}
+export function useNow(ms = 30000) {
+  const [n, setN] = useState(Date.now());
+  useEffect(() => {
+    const i = setInterval(() => setN(Date.now()), ms);
+    return () => clearInterval(i);
+  }, [ms]);
+  return n;
+}
+
+// ── actions ───────────────────────────────────────────────
+const upd = (fn) => setState((s) => fn(s));
+const prepend = (arr, x, max = 500) => [x, ...arr].slice(0, max);
+
+export const actions = {
+  setRole: (role) => upd((s) => ({ ...s, role })),
+  finishOnboarding: () => upd((s) => ({ ...s, onboarded: true, role: 'patient' })),
+  setPref: (k, v) => upd((s) => ({ ...s, prefs: { ...s.prefs, [k]: v } })),
+  setConsent: (group, key, value) =>
+    upd((s) => {
+      const c = { ...s.consent };
+      c[group] = key == null ? value : { ...c[group], [key]: value };
+      const audit = prepend(s.audit, {
+        id: uid('a'), t: Date.now(), actor: PATIENT.name, role: 'patient', action: 'Changed data permission',
+        subject: PATIENT.name, detail: `${group}${key ? '.' + key : ''} → ${key == null ? JSON.stringify(value) : value ? 'on' : 'off'}`,
+      });
+      return { ...s, consent: c, audit };
+    }),
+
+  addCheckin: (weather, mood) =>
+    upd((s) => ({ ...s, checkins: prepend(s.checkins, { id: uid('c'), t: Date.now(), weather, mood }) })),
+  addJournal: (entry) =>
+    upd((s) => ({ ...s, journal: prepend(s.journal, { id: uid('j'), t: Date.now(), shared: false, themes: [], ...entry }) })),
+  updateJournal: (id, patch) => upd((s) => ({ ...s, journal: s.journal.map((j) => (j.id === id ? { ...j, ...patch } : j)) })),
+  deleteJournal: (id) => upd((s) => ({ ...s, journal: s.journal.filter((j) => j.id !== id) })),
+  addLetter: (l) => upd((s) => ({ ...s, letters: prepend(s.letters, { id: uid('l'), t: Date.now(), photos: [], ...l }) })),
+  deleteLetter: (id) => upd((s) => ({ ...s, letters: s.letters.filter((l) => l.id !== id) })),
+
+  addFeedback: (kind, label, helped) =>
+    upd((s) => ({ ...s, feedback: [...s.feedback, { id: uid('fb'), t: Date.now(), kind, label, helped, hour: new Date().getHours() }] })),
+  logSuggestion: (id, action) =>
+    upd((s) => ({ ...s, suggestionLog: [{ id, action, t: Date.now() }, ...s.suggestionLog].slice(0, 80) })),
+
+  sendMessage: (thread, from, text, extra = {}) =>
+    upd((s) => {
+      const msg = { id: uid('m'), from, text, t: Date.now(), kind: 'text', r: { p: from === 'alex', c: from === 'marsh' }, ...extra };
+      return { ...s, threads: { ...s.threads, [thread]: [...(s.threads[thread] || []), msg] } };
+    }),
+  markRead: (thread, who) =>
+    upd((s) => {
+      const list = s.threads[thread];
+      if (!list || !list.some((m) => m.r && !m.r[who])) return s;
+      return { ...s, threads: { ...s.threads, [thread]: list.map((m) => (m.r && !m.r[who] ? { ...m, r: { ...m.r, [who]: true } } : m)) } };
+    }),
+
+  addCircle: (p) => upd((s) => (s.circle.length >= 5 ? s : { ...s, circle: [...s.circle, { id: uid('cp'), perms: { okay: true, mood: false, rhythm: false }, ...p }] })),
+  removeCircle: (id) => upd((s) => ({ ...s, circle: s.circle.filter((c) => c.id !== id) })),
+  setCirclePerm: (id, k, v) => upd((s) => ({ ...s, circle: s.circle.map((c) => (c.id === id ? { ...c, perms: { ...c.perms, [k]: v } } : c)) })),
+
+  saveOuting: (id) =>
+    upd((s) => {
+      const saved = s.outings.saved.includes(id) ? s.outings.saved.filter((x) => x !== id) : [...s.outings.saved, id];
+      return { ...s, outings: { ...s.outings, saved } };
+    }),
+  doneOuting: (id, felt) => upd((s) => ({ ...s, outings: { ...s.outings, done: [{ id, felt, t: Date.now() }, ...s.outings.done] } })),
+
+  addCognitive: (r) => upd((s) => ({ ...s, cognitive: prepend(s.cognitive, { id: uid('g'), t: Date.now(), ...r }) })),
+  setLastScene: (id) => upd((s) => ({ ...s, lastScene: id })),
+
+  // care team
+  toggleCare: (patientId, id) =>
+    upd((s) => {
+      const cp = s.carePlans[patientId];
+      const next = { ...cp, approved: { ...cp.approved, [id]: !cp.approved[id] }, updatedAt: Date.now() };
+      const audit = prepend(s.audit, {
+        id: uid('a'), t: Date.now(), actor: DOCTOR.name, role: 'clinician', action: 'Updated care plan',
+        subject: patientNameOf(patientId), detail: `${INTERVENTIONS.find((i) => i.id === id)?.label}: ${next.approved[id] ? 'approved' : 'paused'}`,
+      });
+      return { ...s, carePlans: { ...s.carePlans, [patientId]: next }, audit };
+    }),
+  setCareField: (patientId, k, v) =>
+    upd((s) => ({ ...s, carePlans: { ...s.carePlans, [patientId]: { ...s.carePlans[patientId], [k]: v, updatedAt: Date.now() } } })),
+  addTwinNote: (patientId, text) =>
+    upd((s) => ({ ...s, twinNotes: prepend(s.twinNotes, { id: uid('n'), patientId, t: Date.now(), by: DOCTOR.name, text }) })),
+
+  addAudit: (action, detail = '', subject = PATIENT.name, actor = DOCTOR.name, role = 'clinician') =>
+    upd((s) => ({ ...s, audit: prepend(s.audit, { id: uid('a'), t: Date.now(), actor, role, action, subject, detail }) })),
+
+  alertAct: (alertId, action, note = '') =>
+    upd((s) => {
+      const status = { ack: 'ack', action: 'actioned', dismiss: 'dismissed', reopen: 'new' }[action] || 'ack';
+      const label = { ack: 'Acknowledged', action: 'Marked as actioned', dismiss: 'Dismissed', reopen: 'Reopened' }[action];
+      const alerts = s.alerts.map((a) =>
+        a.id === alertId ? { ...a, status, audit: [...a.audit, { t: Date.now(), actor: DOCTOR.name, action: label, note }] } : a
+      );
+      const al = s.alerts.find((a) => a.id === alertId);
+      const audit = prepend(s.audit, {
+        id: uid('a'), t: Date.now(), actor: DOCTOR.name, role: 'clinician', action: `Alert ${label.toLowerCase()}`,
+        subject: al ? patientNameOf(al.patientId) : '', detail: note || al?.title || '',
+      });
+      return { ...s, alerts, audit };
+    }),
+  alertView: (alertId) =>
+    upd((s) => {
+      const al = s.alerts.find((a) => a.id === alertId);
+      if (!al || al.audit.some((x) => x.action === 'Viewed')) return s;
+      return { ...s, alerts: s.alerts.map((a) => (a.id === alertId ? { ...a, audit: [...a.audit, { t: Date.now(), actor: DOCTOR.name, action: 'Viewed', note: '' }] } : a)) };
+    }),
+
+  // patient asks for human help → alert + message + audit (human escalation)
+  requestSupport: (note = '') =>
+    upd((s) => {
+      const now = Date.now();
+      const alert = {
+        id: uid('al'),
+        patientId: 'alex',
+        level: 'urgent',
+        title: 'Alex asked their care team for support',
+        reason: note || 'Alex tapped “Let my care team know” in the I-need-support flow. No data thresholds were involved — this was a direct, human request.',
+        signals: [],
+        confidence: 1,
+        window: 'Direct request',
+        rule: 'patient-initiated · always escalates to a human',
+        model: 'n/a',
+        createdAt: now,
+        status: 'new',
+        owner: DOCTOR.name,
+        audit: [{ t: now, actor: PATIENT.name, action: 'Requested support', note }],
+      };
+      const msg = { id: uid('m'), from: 'system', kind: 'system', text: 'Alex asked for support. Dr. Marsh’s team has been notified and will reach out.', t: now, r: { p: true, c: false } };
+      const audit = prepend(s.audit, { id: uid('a'), t: now, actor: PATIENT.name, role: 'patient', action: 'Requested human support', subject: PATIENT.name, detail: 'Care team notified' });
+      return { ...s, alerts: [alert, ...s.alerts], threads: { ...s.threads, 'dr:alex': [...(s.threads['dr:alex'] || []), msg] }, audit };
+    }),
+
+  bookAppt: (patientId, t, kind = 'Check-in call', mode = 'video') =>
+    upd((s) => ({ ...s, appts: [...s.appts, { id: uid('ap'), patientId, t, kind, mins: 20, mode, status: 'requested' }].sort((a, b) => a.t - b.t) })),
+
+  resetAll: async () => {
+    await clearBlobs();
+    state = defaults();
+    emit();
+    persist();
+  },
+};
+
