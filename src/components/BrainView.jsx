@@ -55,3 +55,23 @@ export default function BrainView({ activity, layer = 'activity', links, selecte
   );
 }
 
+function Fallback({ activity, onPick, selected }) {
+  return (
+    <div className="brain-fallback">
+      <svg viewBox="0 0 300 220" width="100%" height="100%">
+        <path d="M60 120c-10-50 30-86 88-86 62 0 102 34 92 90-6 38-40 58-84 56-30-1-52-10-70-26-12-10-22-22-26-34z" fill="rgba(143,211,196,.25)" stroke="rgba(143,211,196,.6)" strokeWidth="2" />
+        {BRAIN_REGIONS.map((r, i) => {
+          const x = 150 + r.pos[2] * 70, y = 120 - r.pos[1] * 90;
+          const a = activity?.[r.id] ?? 0.5;
+          return (
+            <g key={r.id} onClick={() => onPick?.(r.id)} style={{ cursor: 'pointer' }}>
+              <circle cx={x} cy={y} r={14 + a * 14} fill={r.color} opacity={0.25 + a * 0.5} />
+              <circle cx={x} cy={y} r="5" fill={r.color} stroke={selected === r.id ? '#fff' : 'none'} strokeWidth="2" />
+            </g>
+          );
+        })}
+      </svg>
+      <div className="t-xs center" style={{ opacity: 0.7 }}>3D view needs WebGL — showing a flat map.</div>
+    </div>
+  );
+}
