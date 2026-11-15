@@ -210,3 +210,72 @@ function Consent({ onNext }) {
   );
 }
 
+function Watch({ onNext }) {
+  const devices = ['Kokoryze Band', 'Apple Watch', 'Fitbit Charge', 'Garmin Venu', 'Galaxy Watch'];
+  const [conn, setConn] = useState(null);
+  const [busy, setBusy] = useState(null);
+  const pair = (d) => {
+    setBusy(d);
+    setTimeout(() => { setConn(d); setBusy(null); haptic(24); engine.chime(83, 0.05); }, 1600);
+  };
+  return (
+    <div className="stack" style={{ height: '100%' }}>
+      <h1 className="h1 mt-8">Pair your watch.</h1>
+      <p className="t-body t-soft mt-8">Wear it as usual, including at night. That’s the only thing we ask.</p>
+      <div className="radar">
+        {[0, 1, 2].map((i) => <span key={i} className="radar-ring" style={{ animationDelay: `${i * 1.1}s`, animationPlayState: conn ? 'paused' : 'running', opacity: conn ? 0 : undefined }} />)}
+        <motion.div className="radar-core" animate={conn ? { scale: [1, 1.2, 1], background: 'linear-gradient(145deg,#b9e0a8,#5d9a63)' } : {}}>
+          <Icon name={conn ? 'Check' : 'Watch'} size={34} stroke={2.2} />
+        </motion.div>
+      </div>
+      <div className="stack gap-8">
+        {devices.map((d, i) => (
+          <motion.button
+            key={d}
+            className="device-row"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 + i * 0.12 }}
+            onClick={() => !conn && !busy && pair(d)}
+            disabled={!!conn && conn !== d}
+            style={{ opacity: conn && conn !== d ? 0.4 : 1 }}
+          >
+            <Icon name="Watch" size={20} />
+            <span className="grow bold t-sm" style={{ textAlign: 'left' }}>{d}</span>
+            {busy === d ? <Icon name="RefreshCw" size={17} className="spin" /> : conn === d ? <Pill icon="Check">Connected</Pill> : <span className="t-xs t-faint">Tap to pair</span>}
+          </motion.button>
+        ))}
+      </div>
+      <div style={{ flex: 1 }} />
+      <Btn kind={conn ? 'primary' : 'ghost'} size="lg" block onClick={onNext} iconRight={conn ? 'ArrowRight' : undefined}>{conn ? 'Continue' : 'I’ll do this later'}</Btn>
+    </div>
+  );
+}
+
+function Meet({ onDone }) {
+  const petals = useMemo(() => Array.from({ length: 16 }, (_, i) => ({ i, x: Math.random() * 100, d: Math.random() * 3, s: 8 + Math.random() * 12, r: Math.random() * 360 })), []);
+  return (
+    <div className="stack center" style={{ height: '100%', alignItems: 'center', position: 'relative' }}>
+      {petals.map((p) => (
+        <motion.span
+          key={p.i}
+          className="petal"
+          style={{ left: `${p.x}%`, width: p.s, height: p.s * 1.3 }}
+          initial={{ y: -40, opacity: 0, rotate: p.r }}
+          animate={{ y: 620, opacity: [0, 0.9, 0.9, 0], rotate: p.r + 200, x: [0, 24, -18, 20] }}
+          transition={{ duration: 7 + p.d, delay: p.d * 0.5, repeat: Infinity, ease: 'linear' }}
+        />
+      ))}
+      <div style={{ marginTop: 40 }}><Koko size={200} mood="happy" /></div>
+      <motion.h1 className="display mt-24" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ fontSize: 36 }}>Hi Alex, I’m Koko.</motion.h1>
+      <motion.p className="t-body t-soft mt-12" style={{ maxWidth: 300 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
+        I’ll be around. No streaks, no scores, no pressure — and if you tap me, I’ll wave.
+      </motion.p>
+      <div style={{ flex: 1 }} />
+      <motion.div style={{ width: '100%' }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+        <Btn kind="primary" size="lg" block onClick={onDone} iconRight="ArrowRight">Take me in</Btn>
+      </motion.div>
+    </div>
+  );
+}
+
