@@ -143,3 +143,66 @@ export function MiniPlayer({ hidden }) {
   );
 }
 
+// ── desktop side panels ──
+export function SideLeft({ role, onRole }) {
+  return (
+    <aside className="stage-side" style={{ alignItems: 'flex-start' }}>
+      <div className="row-flex gap-12">
+        <Koko size={64} follow />
+        <div>
+          <div className="display" style={{ fontSize: 34 }}>Kokoryze</div>
+          <div className="t-sm t-soft">A quiet companion for your mind</div>
+        </div>
+      </div>
+      <p className="t-body t-soft" style={{ maxWidth: 290 }}>
+        A mobile-first prototype of a personal brain &amp; mental-wellbeing platform: it quietly notices patterns, explains what changed, and connects people with their care team — never replacing it.
+      </p>
+      <div>
+        <div className="t-cap mb-8">View as</div>
+        <div className="stack gap-8">
+          <button className={`side-role ${role !== 'clinician' ? 'on' : ''}`} onClick={() => onRole('patient')}>
+            <Icon name="Smile" size={20} />
+            <span><b>Alex</b><small>Patient app · recovering after TMS</small></span>
+          </button>
+          <button className={`side-role ${role === 'clinician' ? 'on' : ''}`} onClick={() => onRole('clinician')}>
+            <Icon name="Stethoscope" size={20} />
+            <span><b>Dr. Elena Marsh</b><small>Clinician app · one doctor for now</small></span>
+          </button>
+        </div>
+      </div>
+      <p className="t-xs t-faint" style={{ maxWidth: 290 }}>
+        Tip: open this page in a second window — one as Alex, one as Dr. Marsh. Messages, support requests and care-plan changes sync live between them.
+      </p>
+    </aside>
+  );
+}
+
+export function SideRight() {
+  const principles = [
+    ['Passive intelligence', 'Signals are collected quietly. Nothing to fill in.'],
+    ['Personal understanding', 'Compared with your own baseline — never a population.'],
+    ['Meaningful intelligence', 'What changed, why, and how sure we are.'],
+    ['Human-centred support', 'Clinicians and trusted people stay in the loop.'],
+    ['Trust & control', 'Consent, audit trails and human oversight by design.'],
+  ];
+  return (
+    <aside className="stage-side">
+      <div className="t-cap">Five principles</div>
+      <div className="stack gap-12">
+        {principles.map(([t, d], i) => (
+          <div key={t} className="row-flex gap-12" style={{ alignItems: 'flex-start' }}>
+            <div className="icon-btn" style={{ width: 32, height: 32, fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>{i + 1}</div>
+            <div>
+              <div className="bold" style={{ fontSize: 15 }}>{t}</div>
+              <div className="t-sm t-soft">{d}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="card tight tint-butter">
+        <div className="row-flex gap-8 bold t-sm"><Icon name="Info" size={16} /> Prototype · simulated data</div>
+        <div className="t-xs t-soft mt-4">All people, signals and brain visuals are synthetic. Kokoryze is a monitoring and care-support concept — not a diagnostic tool.</div>
+      </div>
+    </aside>
+  );
+}
