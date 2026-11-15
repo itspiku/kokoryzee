@@ -176,3 +176,68 @@ export function LetterNew() {
   );
 }
 
+function ClipPlay({ clip }) {
+  const [url] = useState(() => URL.createObjectURL(clip.blob));
+  const a = useRef(null);
+  const [on, setOn] = useState(false);
+  return (
+    <div className="voice-player">
+      <audio ref={a} src={url} onEnded={() => setOn(false)} />
+      <button className="vp-btn" onClick={() => { on ? a.current.pause() : a.current.play(); setOn(!on); }}><Icon name={on ? 'Pause' : 'Play'} size={20} /></button>
+      <div className="grow t-sm bold">Listen back</div>
+      <span className="t-xs t-num t-soft">{fmtClock(clip.duration)}</span>
+    </div>
+  );
+}
+
+// ───────────────────────────── view
+export function LetterView({ params }) {
+  const l = useStore((s) => s.letters.find((x) => x.id === params.id));
+  const urls = usePhotos(l?.photos);
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [del, setDel] = useState(false);
+
+  useEffect(() => {
+    if (!open || !l?.text) return;
+    let i = 0;
+    const iv = setInterval(() => {
+      i += 2;
+      setTyped(l.text.slice(0, i));
+      if (i >= l.text.length) clearInterval(iv);
+    }, 22);
+    return () => clearInterval(iv);
+  }, [open, l?.text]);
+
+  if (!l) return <Screen tabs={false}><TopBar onBack={() => back('/p/letters')} title="Letter" /></Screen>;
+  return (
+    <Screen tabs={false} bg="linear-gradient(180deg, #f7e6d2, #f3e8dc 60%, var(--bg))" theme={undefined}>
+      <TopBar onBack={() => back('/p/letters')} sub={`Written ${fmtDay(l.t, { month: 'long', day: 'numeric', year: 'numeric' })}`} right={<button className="icon-btn" onClick={() => setDel(true)} aria-label="Delete letter"><Icon name="Trash2" size={19} /></button>} />
+      <AnimatePresence mode="wait">
+        {!open ? (
+          <motion.div key="closed" className="center stack" style={{ alignItems: 'center', paddingTop: 30 }} exit={{ opacity: 0, y: -20 }}>
+            <motion.div className="envelope-big" animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
+              <div className="flap" />
+              <div className="seal-dot"><Icon name="Heart" size={22} /></div>
+            </motion.div>
+            <h1 className="h1 mt-24">{l.title}</h1>
+            <p className="t-body t-soft mt-8" style={{ maxWidth: 280 }}>A message from you, on a better day. Only open it if you’d like to.</p>
+            <Btn kind="warm" size="lg" className="mt-24" icon="Unlock" onClick={() => { haptic([20, 40]); engine.chime(74, 0.05); setOpen(true); }}>Open it</Btn>
+          </motion.div>
+        ) : (
+          <motion.div key="open" initial={{ opacity: 0, y: 40, rotateX: -20 }} animate={{ opacity: 1, y: 0, rotateX: 0 }} transition={{ type: 'spring', stiffness: 80, damping: 16 }} style={{ perspective: 800 }}>
+            <div className="paper">
+              <h1 className="serif" style={{ fontSize: 26, marginBottom: 14 }}>{l.title}</h1>
+              {l.audioId && <div style={{ marginBottom: 16 }}><VoicePlayer audioId={l.audioId} tone="rgba(230,141,87,.16)" /></div>}
+              {l.text && <div className="letter-text">{typed.split('\n').map((ln, i) => <p key={i}>{ln || ' '}</p>)}<span className="caret" /></div>}
+              {urls.length > 0 && <div className="photo-row mt-16">{urls.map((u) => <div className="photo" key={u}><img src={u} alt="" /></div>)}</div>}
+            </div>
+            <div className="center mt-24"><Koko size={90} mood="caring" /><p className="t-sm t-soft mt-8">You’re not alone in this. 💛</p></div>
+            <div className="row-flex gap-8 mt-16"><Btn kind="primary" block icon="Wind" onClick={() => go('/p/breathe')}>Breathe for a minute</Btn><Btn kind="soft" block icon="HeartHandshake" onClick={() => go('/p/circle')}>Reach out</Btn></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <Confirm open={del} danger onClose={() => setDel(false)} title="Delete this letter?" body="Your future self would miss it — but it’s your call." confirm="Delete" onConfirm={() => { actions.deleteLetter(l.id); back('/p/letters'); }} />
+    </Screen>
+  );
+}
