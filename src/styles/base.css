@@ -532,3 +532,58 @@ svg {
     opacity: 0;
   }
 }
+
+/* chips + pills */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 15px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+.chip.on {
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: transparent;
+}
+.chips-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 20px 8px;
+  margin: 0 -20px;
+  scrollbar-width: none;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  background: var(--primary-soft);
+  color: var(--primary);
+  white-space: nowrap;
+}
+.pill.apricot { background: var(--accent-soft); color: #b0612f; }
+.pill.lav { background: rgba(136, 120, 200, 0.16); color: #6b5bb0; }
+.pill.sky { background: rgba(127, 181, 198, 0.2); color: #3d7a90; }
+.pill.rose { background: rgba(212, 116, 104, 0.16); color: #b4493d; }
+.pill.amber { background: rgba(232, 178, 85, 0.2); color: #9a6a12; }
+.pill.mute { background: var(--line); color: var(--ink-2); }
+[data-theme='evening'] .pill.apricot { color: #f4b78d; }
+[data-theme='evening'] .pill.lav { color: #c1b6ee; }
+[data-theme='evening'] .pill.sky { color: #9fd0df; }
+[data-theme='evening'] .pill.rose { color: #f1a89f; }
