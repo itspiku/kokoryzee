@@ -81,3 +81,8 @@ src/
   styles/                tokens (day / evening / clinician), base, screens
 ```
 
+## Notes & limits
+
+* Prototype: no backend, no real authentication, no real wearable integration — the pairing flow is simulated.
+* Microphone (voice notes / letters) and camera (video preview) are only requested when you tap the feature, and stay on-device.
+* Respects `prefers-reduced-motion`. Haptics use the Vibration API where available.
