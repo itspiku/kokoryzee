@@ -75,3 +75,21 @@ const TABLE = [
   ['/c/trust', Trust, { tab: 'trust', mood: 'cool' }],
 ];
 
+function compile(p) {
+  const keys = [];
+  const re = new RegExp('^' + p.replace(/:([a-zA-Z]+)/g, (_, k) => (keys.push(k), '([^/]+)')) + '$');
+  return { re, keys };
+}
+const COMPILED = TABLE.map(([p, Comp, opt]) => ({ ...compile(p), Comp, opt: opt || {} }));
+
+export function matchRoute(path) {
+  for (const r of COMPILED) {
+    const m = path.match(r.re);
+    if (m) {
+      const params = {};
+      r.keys.forEach((k, i) => (params[k] = decodeURIComponent(m[i + 1])));
+      return { Comp: r.Comp, params, ...r.opt };
+    }
+  }
+  return null;
+}
