@@ -864,3 +864,64 @@
   top: 50%;
   transform: translate(-50%, -52%);
 }
+.const-orbit-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+.const-slot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  display: grid;
+  place-items: center;
+}
+.const-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: -34px 0 0 -30px;
+  width: 60px;
+}
+.msg-opt {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 13px 16px;
+  border-radius: var(--r-md);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  font-weight: 560;
+  font-size: 15px;
+  transition: border-color 0.3s, background 0.3s;
+}
+.msg-opt.on {
+  border-color: var(--primary-2);
+  background: var(--primary-soft);
+}
+.pick-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.pick-check {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: var(--primary-ink);
+  border: 2px solid var(--card-solid);
+}
