@@ -250,3 +250,58 @@ export function Sheet({ open, onClose, children, title, height, dark }) {
   );
 }
 
+// ── confirm dialog ──
+export function Confirm({ open, title, body, confirm = 'Confirm', cancel = 'Not now', danger, onConfirm, onClose }) {
+  return (
+    <Sheet open={open} onClose={onClose}>
+      <div className="stack gap-12" style={{ paddingBottom: 6 }}>
+        <h2 className="h2">{title}</h2>
+        {body && <p className="t-body t-soft">{body}</p>}
+        <div className="stack gap-8 mt-8">
+          <Btn kind={danger ? 'warm' : 'primary'} block onClick={() => { onConfirm?.(); onClose?.(); }}>{confirm}</Btn>
+          <Btn kind="ghost" block onClick={onClose}>{cancel}</Btn>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+// ── toasts ──
+let toastSubs = new Set();
+let toastList = [];
+export function toast(text, { icon = 'Check', ms = 2800 } = {}) {
+  const t = { id: Math.random(), text, icon };
+  toastList = [...toastList, t].slice(-3);
+  toastSubs.forEach((f) => f(toastList));
+  setTimeout(() => {
+    toastList = toastList.filter((x) => x.id !== t.id);
+    toastSubs.forEach((f) => f(toastList));
+  }, ms);
+}
+export function ToastHost() {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    toastSubs.add(setList);
+    return () => toastSubs.delete(setList);
+  }, []);
+  return (
+    <div className="toast-host">
+      <AnimatePresence>
+        {list.map((t) => (
+          <motion.div
+            key={t.id}
+            className="toast"
+            initial={{ opacity: 0, y: -24, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+          >
+            <Icon name={t.icon} size={18} />
+            <span>{t.text}</span>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
