@@ -408,3 +408,72 @@ svg {
   flex: none;
   position: relative;
 }
+.icon-btn.plain {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.icon-btn .dot-badge {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--card-solid);
+}
+
+/* ── cards ── */
+.card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  padding: 18px;
+}
+.card.tight { padding: 14px; }
+.card.flat {
+  box-shadow: none;
+  background: var(--card-2);
+}
+.card.tint-sage { background: linear-gradient(160deg, rgba(214, 229, 202, 0.85), rgba(233, 241, 225, 0.6)); }
+.card.tint-apricot { background: linear-gradient(160deg, rgba(250, 220, 192, 0.85), rgba(253, 238, 223, 0.6)); }
+.card.tint-lav { background: linear-gradient(160deg, rgba(221, 213, 243, 0.85), rgba(240, 236, 250, 0.6)); }
+.card.tint-sky { background: linear-gradient(160deg, rgba(201, 227, 234, 0.85), rgba(229, 242, 245, 0.6)); }
+.card.tint-butter { background: linear-gradient(160deg, rgba(242, 220, 142, 0.55), rgba(251, 243, 211, 0.7)); }
+[data-theme='evening'] .card.tint-sage { background: linear-gradient(160deg, rgba(91, 138, 98, 0.28), rgba(91, 138, 98, 0.1)); }
+[data-theme='evening'] .card.tint-apricot { background: linear-gradient(160deg, rgba(230, 141, 87, 0.26), rgba(230, 141, 87, 0.08)); }
+[data-theme='evening'] .card.tint-lav { background: linear-gradient(160deg, rgba(136, 120, 200, 0.3), rgba(136, 120, 200, 0.1)); }
+[data-theme='evening'] .card.tint-sky { background: linear-gradient(160deg, rgba(127, 181, 198, 0.26), rgba(127, 181, 198, 0.08)); }
+[data-theme='evening'] .card.tint-butter { background: linear-gradient(160deg, rgba(242, 220, 142, 0.2), rgba(242, 220, 142, 0.07)); }
+.card.pressable {
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+.card.pressable:active {
+  box-shadow: var(--shadow-card), 0 0 0 3px var(--primary-soft);
+}
+
+/* ── buttons ── */
+.btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-weight: 650;
+  font-size: 16px;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.3s, box-shadow 0.3s, opacity 0.3s;
+}
