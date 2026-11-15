@@ -103,3 +103,64 @@ export const SCENES = [
     minutes: 25,
   },
 ];
+export const sceneById = (id) => SCENES.find((s) => s.id === id);
+export const SOUND_CATS = ['All', 'Meditation', 'Nature', 'Sleep', 'Focus'];
+
+// ── Breathing ──────────────────────────────────────────────
+export const BREATHS = [
+  {
+    id: 'gentle',
+    name: 'Gentle',
+    blurb: 'In for 4, out for 6. The easiest place to start.',
+    phases: [
+      { k: 'in', label: 'Breathe in', secs: 4 },
+      { k: 'out', label: 'Breathe out', secs: 6 },
+    ],
+  },
+  {
+    id: 'box',
+    name: 'Box',
+    blurb: 'Four even sides. Steadying when thoughts race.',
+    phases: [
+      { k: 'in', label: 'Breathe in', secs: 4 },
+      { k: 'hold', label: 'Hold softly', secs: 4 },
+      { k: 'out', label: 'Breathe out', secs: 4 },
+      { k: 'rest', label: 'Rest', secs: 4 },
+    ],
+  },
+  {
+    id: '478',
+    name: 'Settle',
+    blurb: 'In 4, hold 7, out 8. A slow wind-down for nights.',
+    phases: [
+      { k: 'in', label: 'Breathe in', secs: 4 },
+      { k: 'hold', label: 'Hold softly', secs: 7 },
+      { k: 'out', label: 'Breathe out', secs: 8 },
+    ],
+  },
+  {
+    id: 'wave',
+    name: 'Wave',
+    blurb: 'Five and a half each way. Like the tide.',
+    phases: [
+      { k: 'in', label: 'Breathe in', secs: 5.5 },
+      { k: 'out', label: 'Breathe out', secs: 5.5 },
+    ],
+  },
+];
+
+export const GROUND_STEPS = [
+  { n: 5, sense: 'see', icon: 'Eye', line: 'Look around. Name five things you can see.', hint: 'The colour of a mug. A crack in the ceiling. Light on the floor.' },
+  { n: 4, sense: 'feel', icon: 'Hand', line: 'Notice four things you can feel.', hint: 'Your feet on the floor. The weight of your clothes. A cool breeze.' },
+  { n: 3, sense: 'hear', icon: 'Ear', line: 'Listen for three sounds.', hint: 'Far-off traffic. Your own breath. The hum of something electric.' },
+  { n: 2, sense: 'smell', icon: 'Flower2', line: 'Find two things you can smell.', hint: "Tea, soap, fresh air. If nothing, remember a smell you love." },
+  { n: 1, sense: 'taste', icon: 'Coffee', line: 'Notice one thing you can taste.', hint: "Or take a slow sip of water, and notice it." },
+];
+
+// ── Journal ────────────────────────────────────────────────
+export const JOURNAL_PROMPTS = [
+  { id: 'today', title: "Keep today's thoughts", sub: 'Just write what comes', icon: 'PenLine', tint: 'sage', seed: 'Today I noticed…' },
+  { id: 'want', title: 'Capture what you want', sub: 'Small wants count too', icon: 'Sprout', tint: 'butter', seed: 'Something I would like more of is…' },
+  { id: 'joy', title: 'Remember a joy', sub: 'Even a tiny one', icon: 'Sun', tint: 'apricot', seed: 'A small good moment today was…' },
+  { id: 'shift', title: 'Shift a tough thought', sub: 'Gently, with a friend’s voice', icon: 'Wind', tint: 'lav', seed: 'The thought that keeps visiting me is…' },
+];
