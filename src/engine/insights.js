@@ -420,3 +420,51 @@ export function suggest({ now = new Date(), analysis, stats, log, approved, mood
   return scored.filter((c) => c.score > 0.12);
 }
 
+// ── pre-visit brief ──
+export function buildBrief({ patient, series, analysis: a, stats, plan, phq, journalShared = 0 }) {
+  const first = patient.name.split(' ')[0];
+  const worse = a.shifted.slice(0, 4);
+  const better = a.improved.slice(0, 3);
+  const changed = [
+    ...worse.map((s) => ({ tone: 'soft', text: `${s.meta.label}: ${deltaText(s)} vs. personal baseline`, key: s.key })),
+    ...better.map((s) => ({ tone: 'good', text: `${s.meta.label}: ${deltaText(s)} — better than baseline`, key: s.key })),
+  ];
+  if (!changed.length) changed.push({ tone: 'good', text: 'No meaningful change from personal baseline across core signals.' });
+
+  const used = Object.values(stats || {}).filter((o) => o.n >= 2).sort((x, y) => y.n - x.n);
+  const tried = used
+    .filter((o) => !plan || plan.approved[o.kind.split(':')[0] === 'sound' ? 'sounds' : o.kind.split(':')[0] === 'ground' ? 'breathing' : o.kind.split(':')[0]] !== false)
+    .slice(0, 5)
+    .map((o) => ({ label: o.label, n: o.n, rate: o.rate }));
+  const helped = used.filter((o) => o.n >= 3).sort((x, y) => y.rate - x.rate).slice(0, 3).map((o) => ({ label: o.label, yes: o.yes, some: o.some, n: o.n, rate: o.rate }));
+
+  const phqNow = phq?.[phq.length - 1];
+  const phqStart = phq?.[0];
+  const symptoms = phq?.length
+    ? `PHQ-9 ${phqStart}${phq.length > 1 ? ` → ${phqNow}` : ''} (${phqNow >= 20 ? 'severe' : phqNow >= 15 ? 'moderately severe' : phqNow >= 10 ? 'moderate' : phqNow >= 5 ? 'mild' : 'minimal'})`
+    : 'No clinician-rated scale on file';
+
+  const questions = [];
+  if (worse.some((s) => s.key === 'sleepMid' || s.key === 'sleepDur')) questions.push('How has sleep felt in the last week? Any change in routine, caffeine, or worry at bedtime?');
+  if (worse.some((s) => s.key === 'steps' || s.key === 'activeMin')) questions.push('Has energy or motivation changed? Is anything making it harder to get outside?');
+  if (worse.some((s) => s.key === 'social')) questions.push('Have you been in touch with your circle as much as you’d like?');
+  if (helped[0]) questions.push(`${helped[0].label} appears to help — would you like it more prominent in the plan?`);
+  questions.push('Is there anything about the sessions or side-effects you’d like to raise?');
+
+  return {
+    headline: a.status === 'review' ? `${first}: gentle shift in the last ${a.recentDays} days after a strong stretch` : a.status === 'better' ? `${first}: brighter than baseline` : `${first}: steady against personal baseline`,
+    changed,
+    tried,
+    helped,
+    symptoms,
+    questions: questions.slice(0, 4),
+    quality: `${a.wearDays} of last ${a.recentDays} days with wearable data · baseline ${Math.round(a.baseCoverage * 100)}% complete · confidence ${confidenceLabel(a.confidence).toLowerCase()} (${a.confidence.toFixed(2)})`,
+    journalShared,
+  };
+}
+
+export function moodFromCheckins(checkins, days = 3) {
+  const cutoff = Date.now() - days * 86400000;
+  const v = checkins.filter((c) => c.t >= cutoff).map((c) => c.mood);
+  return v.length ? mean(v) : NaN;
+}
