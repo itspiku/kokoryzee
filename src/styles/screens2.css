@@ -116,3 +116,58 @@
   background: radial-gradient(circle at 32% 28%, #f6a37a, #c9503a);
   box-shadow: 0 20px 40px -12px rgba(201, 80, 58, 0.6), inset 0 3px 0 rgba(255, 255, 255, 0.3);
 }
+.envelope-big {
+  position: relative;
+  width: 220px;
+  height: 150px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fbe9d3, #f2cfa6);
+  box-shadow: 0 30px 50px -22px rgba(176, 97, 47, 0.55);
+}
+.envelope-big .flap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 80px;
+  background: linear-gradient(180deg, #f6d6b0, #eec293);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-radius: 14px 14px 0 0;
+}
+.seal-dot {
+  position: absolute;
+  left: 50%;
+  top: 62px;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: radial-gradient(circle at 32% 28%, #f6a37a, #c9503a);
+  box-shadow: 0 6px 14px -4px rgba(201, 80, 58, 0.7);
+}
+.paper {
+  padding: 22px 22px 26px;
+  border-radius: 6px 6px 26px 26px;
+  background: #fffaf0;
+  color: #3a2d22;
+  box-shadow: 0 30px 50px -26px rgba(120, 70, 30, 0.5), 0 0 0 1px rgba(176, 97, 47, 0.08);
+  background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(176, 97, 47, 0.08) 32px);
+}
+.letter-text p {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+  font-size: 18.5px;
+  line-height: 32px;
+  margin: 0;
+}
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 22px;
+  background: #b0612f;
+  vertical-align: -4px;
+  animation: blink 1s steps(2) infinite;
+}
