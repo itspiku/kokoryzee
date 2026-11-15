@@ -193,3 +193,60 @@ export function TopBar({ title, sub, onBack, backTo, right, light, transparent }
   );
 }
 
+// ── bottom sheet ──
+export function useOverlayRoot() {
+  const [el, setEl] = useState(null);
+  useEffect(() => {
+    setEl(document.querySelector('.overlay-root'));
+  }, []);
+  return el;
+}
+export function Sheet({ open, onClose, children, title, height, dark }) {
+  const root = useOverlayRoot();
+  const controls = useDragControls();
+  const y = useMotionValue(0);
+  const bd = useTransform(y, [0, 300], [1, 0.2]);
+  if (!root) return null;
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <div key="sheet-wrap" style={{ position: 'absolute', inset: 0, zIndex: 130 }}>
+          <motion.div
+            className="sheet-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ opacity: bd }}
+            onClick={onClose}
+          />
+          <motion.div
+            className="sheet"
+            role="dialog"
+            aria-label={title}
+            style={{ y, height, ...(dark ? { background: '#15241e', color: '#eaf1e6' } : null) }}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 320, damping: 34 }}
+            drag="y"
+            dragControls={controls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 120 || info.velocity.y > 600) onClose?.();
+            }}
+          >
+            <div className="sheet-grab" onPointerDown={(e) => controls.start(e)} style={{ touchAction: 'none', cursor: 'grab', padding: '6px 0 10px', background: 'transparent', height: 'auto' }}>
+              <div style={{ width: 44, height: 5, borderRadius: 3, background: 'var(--line-2)', margin: '0 auto' }} />
+            </div>
+            {title && <h2 className="h2 mb-12" onPointerDown={(e) => controls.start(e)} style={{ touchAction: 'none' }}>{title}</h2>}
+            <div className="sheet-body">{children}</div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    root
+  );
+}
+
