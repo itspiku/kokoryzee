@@ -234,3 +234,61 @@ svg {
     z-index: 2;
   }
 }
+
+.statusbar {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  padding: 18px 34px 0;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-weight: 650;
+  font-size: 15.5px;
+  z-index: 150;
+  pointer-events: none;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.statusbar .sb-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ── ambient background ── */
+.ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-grad);
+  z-index: 0;
+  pointer-events: none;
+  transition: background 1.2s var(--ease-soft);
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(54px);
+  opacity: var(--blob-opacity);
+  will-change: transform;
+  transition: opacity 1s, background 1.4s;
+}
+.blob.a {
+  width: 340px;
+  height: 340px;
+  left: -90px;
+  top: -60px;
+  background: radial-gradient(circle at 40% 40%, var(--blob-a), transparent 68%);
+  animation: drift-a 26s var(--ease-breath) infinite alternate;
+}
+.blob.b {
+  width: 320px;
+  height: 320px;
+  right: -110px;
+  top: 28%;
+  background: radial-gradient(circle at 50% 50%, var(--blob-b), transparent 68%);
+  animation: drift-b 31s var(--ease-breath) infinite alternate;
+}
