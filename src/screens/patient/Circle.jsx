@@ -56,3 +56,148 @@ function Constellation({ people, onPick }) {
   );
 }
 
+const PERM = [
+  { k: 'okay', icon: 'Check', t: 'That I’m okay', d: 'A simple “doing okay / having a harder day” note.' },
+  { k: 'mood', icon: 'CloudSun', t: 'My “weather inside”', d: 'The check-ins you choose to make.' },
+  { k: 'rhythm', icon: 'Moon', t: 'Sleep & rhythm summary', d: 'Only gentle words like “rested” — never numbers.' },
+];
+
+export default function Circle() {
+  const circle = useStore((s) => s.circle);
+  const threads = useStore((s) => s.threads);
+  const [add, setAdd] = useState(false);
+  const [ask, setAsk] = useState(false);
+  const [perm, setPerm] = useState(null);
+  const [sel, setSel] = useState([]);
+  const [msg, setMsg] = useState(SUPPORT_MESSAGES[0]);
+
+  const hello = (p) => {
+    haptic(20);
+    engine.chime(79, 0.04);
+    actions.sendMessage(`circle:${p.id}`, 'alex', 'Thinking of you ❤️');
+    actions.addFeedback('circle:call', 'Talking with someone close', 'yes');
+    toast(`Sent a hello to ${p.name}`, { icon: 'Heart' });
+    simulateReply(p);
+  };
+  const sendAsk = () => {
+    sel.forEach((id) => {
+      const p = circle.find((c) => c.id === id);
+      actions.sendMessage(`circle:${id}`, 'alex', msg);
+      simulateReply(p, [3200, 6000]);
+    });
+    haptic([20, 40, 20]);
+    toast(`Sent to ${sel.length} ${sel.length === 1 ? 'person' : 'people'}`, { icon: 'Send' });
+    setAsk(false);
+    setSel([]);
+  };
+
+  return (
+    <Screen bg="linear-gradient(180deg, color-mix(in srgb, var(--butter-100) 70%, var(--bg)), var(--bg) 460px)">
+      <div className="row-flex between">
+        <div>
+          <div className="t-cap">{circle.length} of 5 people</div>
+          <h1 className="h1" style={{ marginTop: 2 }}>My circle</h1>
+        </div>
+        <button className="icon-btn" aria-label="Add someone" onClick={() => circle.length < 5 ? setAdd(true) : toast('Your circle has room for five people.', { icon: 'Info' })}><Icon name="UserPlus" size={20} /></button>
+      </div>
+      <p className="t-sm t-soft mt-4" style={{ maxWidth: 290 }}>The few people you trust. They only see what you decide — and nobody is ever told you have a streak or a score.</p>
+
+      <Constellation people={circle} onPick={(p) => go(`/p/circle/${p.id}`)} />
+
+      <Rise i={2}>
+        <Card tint="apricot" className="row-flex gap-12" onClick={() => setAsk(true)}>
+          <div className="ico-dot lg" style={{ background: 'var(--glass-soft)', color: '#b0612f' }}><Icon name="HandHeart" size={24} /></div>
+          <div className="grow">
+            <div className="h3">Let someone know I’m struggling</div>
+            <div className="t-sm t-soft">A gentle, pre-written message. Pick who gets it.</div>
+          </div>
+          <Icon name="ChevronRight" size={18} style={{ opacity: 0.5 }} />
+        </Card>
+      </Rise>
+
+      <SectionTitle sub="Tap a name for the conversation">People you trust</SectionTitle>
+      <div className="stack gap-12">
+        {circle.map((p, i) => {
+          const th = threads[`circle:${p.id}`] || [];
+          const last = th[th.length - 1];
+          const unread = th.filter((m) => m.r && !m.r.p).length;
+          const sees = PERM.filter((x) => p.perms[x.k]);
+          return (
+            <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.08, type: 'spring', stiffness: 120, damping: 18 }}>
+              <Card className="person-card">
+                <div className="row-flex gap-12">
+                  <Avatar name={p.name} hue={p.hue} size={56} ring />
+                  <div className="grow">
+                    <div className="row-flex between"><div className="h3">{p.full}</div>{unread > 0 && <Pill tone="apricot">{unread} new</Pill>}</div>
+                    <div className="t-sm t-soft">{p.rel} · {p.note}</div>
+                  </div>
+                </div>
+                {last && <div className="t-xs t-faint mt-8 truncate"><Icon name="MessageCircle" size={12} style={{ display: 'inline', verticalAlign: '-1px' }} /> {last.from === 'alex' ? 'You: ' : ''}{last.text} · {timeAgo(last.t)}</div>}
+                <div className="row-flex gap-8 mt-12">
+                  <Btn kind="primary" size="sm" icon="Heart" onClick={() => hello(p)}>Send a hello</Btn>
+                  <Btn kind="soft" size="sm" icon="MessageCircle" onClick={() => go(`/p/circle/${p.id}`)}>Chat</Btn>
+                  <div className="grow" />
+                  <button className="icon-btn plain" style={{ width: 38, height: 38 }} aria-label={`What ${p.name} can see`} onClick={() => setPerm(p.id)}><Icon name="Eye" size={19} /></button>
+                </div>
+                <div className="tag-row mt-8">
+                  <span className="t-xs t-faint" style={{ marginRight: 2 }}>Can see:</span>
+                  {sees.map((x) => <Pill key={x.k} tone="mute">{x.t}</Pill>)}
+                </div>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* add person */}
+      <AddPerson open={add} onClose={() => setAdd(false)} />
+
+      {/* ask */}
+      <Sheet open={ask} onClose={() => setAsk(false)} title="Let someone know">
+        <p className="t-sm t-soft mb-12">Choose a message, then who should get it. You don’t have to explain.</p>
+        <div className="stack gap-8">
+          {SUPPORT_MESSAGES.map((m) => (
+            <button key={m} className={`msg-opt ${msg === m ? 'on' : ''}`} onClick={() => { haptic(6); setMsg(m); }}>{m}{msg === m && <Icon name="Check" size={17} stroke={2.6} />}</button>
+          ))}
+        </div>
+        <div className="t-cap mt-16 mb-8">Send to</div>
+        <div className="row-flex gap-12 wrap">
+          {circle.map((p) => {
+            const on = sel.includes(p.id);
+            return (
+              <button key={p.id} className="pick-person" onClick={() => { haptic(6); setSel(on ? sel.filter((x) => x !== p.id) : [...sel, p.id]); }}>
+                <div style={{ position: 'relative' }}>
+                  <Avatar name={p.name} hue={p.hue} size={54} />
+                  <AnimatePresence>{on && <motion.span className="pick-check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}><Icon name="Check" size={13} stroke={3} /></motion.span>}</AnimatePresence>
+                </div>
+                <span className="t-xs bold">{p.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <Btn kind="warm" block size="lg" className="mt-20" icon="Send" disabled={!sel.length} onClick={sendAsk}>Send</Btn>
+      </Sheet>
+
+      {/* permissions */}
+      <Sheet open={!!perm} onClose={() => setPerm(null)} title={perm ? `What ${circle.find((c) => c.id === perm)?.name} can see` : ''}>
+        {perm && (
+          <div className="stack gap-10">
+            <p className="t-sm t-soft">You’re in control. Nothing is shared by default beyond “I’m okay”. Every change is logged.</p>
+            {PERM.map((x) => {
+              const p = circle.find((c) => c.id === perm);
+              return (
+                <Card key={x.k} tight className="row-flex gap-12">
+                  <div className="ico-dot"><Icon name={x.icon} size={18} /></div>
+                  <div className="grow"><div className="bold t-sm">{x.t}</div><div className="t-xs t-faint">{x.d}</div></div>
+                  <Switch on={p.perms[x.k]} onChange={(v) => actions.setCirclePerm(p.id, x.k, v)} label={x.t} />
+                </Card>
+              );
+            })}
+            <Btn kind="ghost" block onClick={() => { actions.removeCircle(perm); setPerm(null); toast('Removed from your circle.', { icon: 'Check' }); }}>Remove from my circle</Btn>
+          </div>
+        )}
+      </Sheet>
+    </Screen>
+  );
+}
+
