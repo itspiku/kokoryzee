@@ -279,3 +279,29 @@ function Meet({ onDone }) {
   );
 }
 
+function ClinSignIn({ open, onClose }) {
+  const [busy, setBusy] = useState(false);
+  const enter = () => {
+    setBusy(true);
+    setTimeout(() => {
+      actions.setRole('clinician');
+      setBusy(false);
+      onClose();
+      go('/c/overview', { dir: 'forward' });
+    }, 1000);
+  };
+  return (
+    <Sheet open={open} onClose={onClose} title="Care-team sign in">
+      <p className="t-sm t-soft mb-16">This prototype has one clinician for now. In production this step is single sign-on with multi-factor authentication and role-based access.</p>
+      <Card className="row-flex gap-12 mb-16">
+        <Avatar name={DOCTOR.name} hue={DOCTOR.hue} size={52} ring />
+        <div className="grow">
+          <div className="bold">{DOCTOR.name}</div>
+          <div className="t-sm t-soft">{DOCTOR.role}</div>
+        </div>
+        <Pill icon="ShieldCheck">Verified</Pill>
+      </Card>
+      <Btn kind="primary" size="lg" block onClick={enter} disabled={busy} icon={busy ? 'RefreshCw' : 'KeyRound'}>{busy ? 'Verifying…' : 'Continue as Dr. Marsh'}</Btn>
+    </Sheet>
+  );
+}
