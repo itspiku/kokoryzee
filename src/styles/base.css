@@ -826,3 +826,69 @@ svg {
   font-weight: 700;
   color: var(--accent);
 }
+.tab-help .orb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: radial-gradient(circle at 32% 28%, #f9cba3, #ec9558 70%);
+  box-shadow: 0 14px 28px -8px rgba(230, 141, 87, 0.75), 0 0 0 5px var(--tab-bg), inset 0 2px 0 rgba(255, 255, 255, 0.5);
+}
+.tab-help .orb::before,
+.tab-help .orb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(240, 168, 119, 0.6);
+  animation: halo 3.6s var(--ease-soft) infinite;
+}
+.tab-help .orb::after {
+  animation-delay: 1.8s;
+}
+@keyframes halo {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+/* mini player */
+.miniplayer {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 8px);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 8px;
+  border-radius: 24px;
+  background: rgba(24, 40, 33, 0.9);
+  color: #eef4ea;
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+}
+
+/* utility visuals */
+.divider {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+  margin: 14px 0;
+}
+.avatar {
+  position: relative;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px var(--card-solid), 0 6px 14px -6px rgba(0, 0, 0, 0.35);
+}
