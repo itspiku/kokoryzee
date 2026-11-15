@@ -75,3 +75,58 @@ export function useRecorder() {
   return { state, seconds, bars, start, stop, reset: () => setState('idle') };
 }
 
+/** Static pretty waveform bars with progress overlay. */
+export function WaveBars({ progress = 0, count = 44, seed = 3, height = 40, color = 'var(--primary-2)' }) {
+  const bars = Array.from({ length: count }, (_, i) => 0.25 + 0.75 * Math.abs(Math.sin(i * 0.7 + seed) * Math.cos(i * 0.23 + seed * 2)));
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3, height }}>
+      {bars.map((b, i) => (
+        <i key={i} style={{ flex: 1, height: `${b * 100}%`, borderRadius: 3, background: color, opacity: i / count < progress ? 1 : 0.28, transition: 'opacity .2s' }} />
+      ))}
+    </div>
+  );
+}
+
+/** Playback for a stored blob (voice note / letter). */
+export function VoicePlayer({ audioId, tone }) {
+  const [url, setUrl] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [p, setP] = useState(0);
+  const [dur, setDur] = useState(0);
+  const a = useRef(null);
+  useEffect(() => {
+    let u;
+    getBlob(audioId).then((b) => {
+      if (b) { u = URL.createObjectURL(b); setUrl(u); }
+    });
+    return () => u && URL.revokeObjectURL(u);
+  }, [audioId]);
+  if (!audioId) return null;
+  return (
+    <div className="voice-player" style={tone ? { background: tone } : undefined}>
+      <audio
+        ref={a}
+        src={url || undefined}
+        onTimeUpdate={(e) => setP(e.target.currentTime / (e.target.duration || 1))}
+        onLoadedMetadata={(e) => setDur(isFinite(e.target.duration) ? e.target.duration : 0)}
+        onEnded={() => { setPlaying(false); setP(0); }}
+      />
+      <motion.button className="vp-btn" whileTap={{ scale: 0.9 }} disabled={!url} onClick={() => { if (playing) a.current.pause(); else a.current.play(); setPlaying(!playing); }} aria-label={playing ? 'Pause' : 'Play'}>
+        <Icon name={playing ? 'Pause' : 'Play'} size={22} />
+      </motion.button>
+      <div className="grow"><WaveBars progress={p} seed={audioId.length} /></div>
+      <span className="t-xs t-num t-soft">{fmtClock(dur * (playing ? p : 1))}</span>
+    </div>
+  );
+}
+
+/** Live bars while recording */
+export function LiveBars({ bars, height = 70, color = 'var(--accent)' }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3, height }}>
+      {bars.map((b, i) => (
+        <i key={i} style={{ flex: 1, height: `${Math.max(6, b * 100)}%`, borderRadius: 3, background: color, opacity: 0.35 + (i / bars.length) * 0.65, transition: 'height .08s' }} />
+      ))}
+    </div>
+  );
+}
