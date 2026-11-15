@@ -64,3 +64,34 @@ export async function delBlob(id) {
   } catch {}
 }
 
+export async function clearBlobs() {
+  mem.clear();
+  try {
+    const db = await open();
+    await new Promise((res) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).clear();
+      tx.oncomplete = res;
+      tx.onerror = res;
+    });
+  } catch {}
+}
+
+/** Downscale an image file to a compact JPEG blob. */
+export function compressImage(file, max = 900, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s);
+      c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => (b ? resolve(b) : reject(new Error('compress failed'))), 'image/jpeg', quality);
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
