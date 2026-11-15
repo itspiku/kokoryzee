@@ -393,3 +393,24 @@ export const actions = {
   },
 };
 
+function patientNameOf(id) {
+  return PATIENTS.find((p) => p.id === id)?.name || id;
+}
+
+// derived helpers ──────────────────────────────────────────
+export function responseStats(feedback) {
+  const m = {};
+  for (const f of feedback) {
+    const o = (m[f.kind] ||= { kind: f.kind, label: f.label, yes: 0, some: 0, no: 0, n: 0, hours: [] });
+    o[f.helped]++;
+    o.n++;
+    o.hours.push(f.hour);
+    o.label = f.label || o.label;
+  }
+  for (const o of Object.values(m)) {
+    o.rate = (o.yes + 0.5 * o.some) / Math.max(1, o.n);
+    o.helpedCount = o.yes + o.some;
+  }
+  return m;
+}
+export { confidenceLabel };
