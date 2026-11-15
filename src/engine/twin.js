@@ -76,3 +76,25 @@ export function makeTwin(series) {
   return { regionAt, links, all };
 }
 
+/** Pearson r between two arrays with nulls */
+function pearson(a, b) {
+  const xs = [], ys = [];
+  for (let i = 0; i < a.length; i++) if (isNum(a[i]) && isNum(b[i])) { xs.push(a[i]); ys.push(b[i]); }
+  if (xs.length < 8) return NaN;
+  const mx = mean(xs), my = mean(ys);
+  let num = 0, dx = 0, dy = 0;
+  xs.forEach((x, i) => { num += (x - mx) * (ys[i] - my); dx += (x - mx) ** 2; dy += (ys[i] - my) ** 2; });
+  return num / Math.sqrt(dx * dy || 1);
+}
+
+/** Which signals moved with self-reported mood (association — never causation). */
+export function associations(series) {
+  const mood = series.map((r) => (isNum(r.mood) ? r.mood : null));
+  const out = [];
+  for (const k of ['sleepDur', 'sleepEff', 'hrv', 'restHR', 'steps', 'activeMin', 'nightPhone', 'social', 'sleepMid', 'reaction']) {
+    const sm = series.map((_, i) => smoothAt(series, k, i, 3));
+    const r = pearson(sm, mood);
+    if (isNum(r)) out.push({ key: k, label: SIGNAL_META[k].label, r });
+  }
+  return out.sort((a, b) => Math.abs(b.r) - Math.abs(a.r)).slice(0, 4);
+}
