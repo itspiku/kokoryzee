@@ -341,3 +341,59 @@
   background: var(--line);
   overflow: hidden;
 }
+.sig-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--amber-400), #e08e4a);
+}
+.audit-line {
+  position: relative;
+  padding-left: 26px;
+  padding-bottom: 14px;
+}
+.audit-line::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 14px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--line-2);
+}
+.audit-line:last-child::before {
+  display: none;
+}
+.audit-line::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary-2);
+  border: 3px solid var(--card-solid);
+  box-shadow: 0 0 0 1px var(--line-2);
+}
+.tabs-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 20px 10px;
+  margin: 0 -20px;
+  scrollbar-width: none;
+}
+.tabs-scroll .tab-pill-btn {
+  position: relative;
+  flex: none;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--ink-2);
+  z-index: 0;
+}
+.tabs-scroll .tab-pill-btn.on {
+  color: var(--primary-ink);
+}
