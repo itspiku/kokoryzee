@@ -305,3 +305,59 @@ export function ToastHost() {
   );
 }
 
+// ── segmented control ──
+export function Segmented({ options, value, onChange, id = 'seg', small }) {
+  return (
+    <div
+      role="tablist"
+      style={{
+        display: 'inline-flex', padding: 4, borderRadius: 999, background: 'var(--card)', border: '1px solid var(--card-border)',
+        boxShadow: 'var(--shadow-card)', position: 'relative', gap: 2,
+      }}
+    >
+      {options.map((o) => {
+        const v = o.value ?? o;
+        const l = o.label ?? o;
+        const on = v === value;
+        return (
+          <button
+            key={v}
+            role="tab"
+            aria-selected={on}
+            onClick={() => { haptic(6); onChange(v); }}
+            style={{ position: 'relative', padding: small ? '6px 14px' : '9px 18px', borderRadius: 999, fontWeight: 650, fontSize: small ? 13 : 14.5, color: on ? 'var(--primary-ink)' : 'var(--ink-2)', zIndex: 1, transition: 'color .3s' }}
+          >
+            {on && (
+              <motion.span
+                layoutId={`${id}-pill`}
+                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                style={{ position: 'absolute', inset: 0, borderRadius: 999, background: 'linear-gradient(180deg,var(--primary-2),var(--primary))', boxShadow: 'var(--shadow-btn)', zIndex: -1 }}
+              />
+            )}
+            {o.icon && <Icon name={o.icon} size={15} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />}
+            {l}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── range slider ──
+export function Slider({ value, onChange, min = 0, max = 1, step = 0.01, color, label }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <input
+      type="range"
+      aria-label={label}
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(e) => onChange(parseFloat(e.target.value))}
+      className="kz-range"
+      style={{ '--p': `${pct}%`, '--c': color || 'var(--primary-2)' }}
+    />
+  );
+}
+
