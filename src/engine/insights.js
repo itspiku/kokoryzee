@@ -292,3 +292,131 @@ export function patientCards(series, a) {
   return cards;
 }
 
+/** One-sentence "this week in plain words" */
+export function weekInWords(a) {
+  if (a.status === 'forming') return 'Kokoryze is still getting to know your rhythm. Just wear your watch — nothing else is needed.';
+  if (a.status === 'review' || a.status === 'shift') return 'A few signals have shifted gently from your usual. Nothing to fix. Small kind things tend to help.';
+  if (a.status === 'better') return 'Things look a little brighter than your usual lately. Notice it.';
+  return 'Your week looks steady and close to your usual. Quiet is good.';
+}
+
+// ── suggestion engine: one gentle suggestion at a time ──
+export function suggest({ now = new Date(), analysis, stats, log, approved, mood, hasLetter }) {
+  const hour = now.getHours() + now.getMinutes() / 60;
+  const pod = partOfDay(now);
+  const ok = (k) => approved?.[k] !== false;
+  const rate = (kind, d = 0.5) => (stats?.[kind] ? stats[kind].rate : d);
+  const helped = (kind) => (stats?.[kind] ? `${stats[kind].helpedCount} of ${stats[kind].n}` : null);
+  const sh = analysis?.shifted?.map((s) => s.key) || [];
+  const lowMood = isNum(mood) && mood <= 2;
+  const tiredLately = sh.includes('sleepDur') || sh.includes('sleepMid');
+  const stressed = sh.includes('restHR') || sh.includes('hrv');
+  const lowMove = sh.includes('steps') || sh.includes('activeMin');
+
+  const C = [];
+  if (ok('sounds') || ok('sleep')) {
+    const scene = pod === 'evening' || pod === 'night' ? (rate('sound:evening-meditation') >= rate('sound:forest-rain') ? 'evening-meditation' : 'forest-rain') : 'forest-rain';
+    const kind = `sound:${scene}`;
+    C.push({
+      id: `sound-${scene}`,
+      fit: pod === 'evening' ? 1 : pod === 'night' ? 0.95 : 0.35 + (stressed ? 0.25 : 0),
+      kind,
+      title: pod === 'evening' || pod === 'night' ? 'Ease into the evening' : 'A calm pause',
+      body: pod === 'evening' || pod === 'night' ? `Ten quiet minutes of ${sceneById(scene).title.toLowerCase()} before you wind down.` : `A few minutes of ${sceneById(scene).title.toLowerCase()} to settle your mind.`,
+      reason: helped(kind) ? `This has helped you ${helped(kind)} times.` : 'Gentle sound often helps the body let go.',
+      cta: 'Play softly',
+      icon: 'Music2',
+      tint: 'lav',
+      to: `/p/player?scene=${scene}`,
+      feedbackKind: kind,
+    });
+  }
+  if (ok('breathing')) {
+    C.push({
+      id: 'breath',
+      fit: 0.45 + (stressed ? 0.4 : 0) + (pod === 'afternoon' ? 0.15 : 0),
+      kind: 'breathing:gentle',
+      title: 'Three slow breaths… or thirty',
+      body: 'A paced-breathing minute to steady things.',
+      reason: helped('breathing:gentle') ? `Gentle breathing helped ${helped('breathing:gentle')} times.` : 'Slow exhales calm the body’s alarm system.',
+      cta: 'Breathe with me',
+      icon: 'Wind',
+      tint: 'sky',
+      to: '/p/breathe',
+      feedbackKind: 'breathing:gentle',
+    });
+  }
+  if (ok('outings')) {
+    C.push({
+      id: 'walk',
+      fit: (pod === 'morning' || pod === 'afternoon' ? 0.8 : 0.1) + (lowMove ? 0.2 : 0),
+      kind: 'outing:walk',
+      title: 'Five minutes of daylight?',
+      body: 'No target. Just step outside, look up, come back.',
+      reason: helped('outing:walk') ? `Short walks helped ${helped('outing:walk')} times.` : 'Light and movement are quiet mood-lifters.',
+      cta: 'See ideas',
+      icon: 'Footprints',
+      tint: 'apricot',
+      to: '/p/going-out',
+      feedbackKind: 'outing:walk',
+    });
+  }
+  if (ok('circle')) {
+    C.push({
+      id: 'circle',
+      fit: 0.25 + (lowMood ? 0.5 : 0) + (pod === 'evening' ? 0.2 : 0),
+      kind: 'circle:call',
+      title: 'Say a small hello',
+      body: 'One tap to let someone you trust know you’re thinking of them.',
+      reason: helped('circle:call') ? `Reaching out helped ${helped('circle:call')} times.` : 'Connection is a gentle support.',
+      cta: 'Open my circle',
+      icon: 'HeartHandshake',
+      tint: 'butter',
+      to: '/p/circle',
+      feedbackKind: 'circle:call',
+    });
+  }
+  if (ok('journal')) {
+    C.push({
+      id: 'journal',
+      fit: (pod === 'evening' || pod === 'night' ? 0.6 : 0.3) + (lowMood ? 0.15 : 0),
+      kind: 'journal:write',
+      title: 'A line or two, just for you',
+      body: 'Write or say what is on your mind. Only you can read it.',
+      reason: helped('journal:write') ? `Journaling helped ${helped('journal:write')} times.` : 'Putting a thought outside your head can lighten it.',
+      cta: 'Open journal',
+      icon: 'PenLine',
+      tint: 'sage',
+      to: '/p/journal',
+      feedbackKind: 'journal:write',
+    });
+  }
+  if (ok('letter') && hasLetter && lowMood) {
+    C.push({
+      id: 'letter',
+      fit: 0.9,
+      kind: 'letter:open',
+      title: 'A letter from a better day',
+      body: 'You wrote something for this moment. Only if you’d like to.',
+      reason: 'You asked for it to be offered when things feel heavy.',
+      cta: 'Read it',
+      icon: 'Mail',
+      tint: 'apricot',
+      to: '/p/letters',
+      feedbackKind: 'letter:open',
+    });
+  }
+
+  const day = Math.floor(now.getTime() / 86400000);
+  const scored = C.map((c, i) => {
+    const recent = (log || []).filter((l) => l.id === c.id && now.getTime() - l.t < 24 * HOUR);
+    const declined = recent.some((l) => l.action === 'declined');
+    const shownRecently = (log || []).some((l) => l.id === c.id && now.getTime() - l.t < 2 * HOUR);
+    const personal = rate(c.kind, 0.5);
+    const jitter = ((Math.sin(day * 12.9898 + i * 78.233) * 43758.5453) % 1 + 1) % 1 * 0.08;
+    const score = c.fit * (0.55 + 0.9 * personal) - (declined ? 0.7 : 0) - (shownRecently ? 0.35 : 0) + jitter;
+    return { ...c, score };
+  }).sort((a, b) => b.score - a.score);
+  return scored.filter((c) => c.score > 0.12);
+}
+
