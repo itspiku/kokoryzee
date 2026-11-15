@@ -57,3 +57,75 @@ export function Btn({ kind = 'primary', size, block, icon, iconRight, children, 
   );
 }
 
+export function Card({ tint, tight, flat, pressable, onClick, className, children, style, as, ...rest }) {
+  const Comp = motion[as || 'div'];
+  return (
+    <Comp
+      className={cx('card', tint && `tint-${tint}`, tight && 'tight', flat && 'flat', (pressable || onClick) && 'pressable', className)}
+      style={style}
+      onClick={
+        onClick
+          ? (e) => {
+              haptic(6);
+              onClick(e);
+            }
+          : undefined
+      }
+      whileTap={onClick || pressable ? { scale: 0.982 } : undefined}
+      transition={{ type: 'spring', stiffness: 520, damping: 26 }}
+      {...rest}
+    >
+      {children}
+    </Comp>
+  );
+}
+
+export function Pill({ tone, children, icon, className }) {
+  return (
+    <span className={cx('pill', tone, className)}>
+      {icon && <Icon name={icon} size={12} stroke={2.4} />}
+      {children}
+    </span>
+  );
+}
+
+export function Switch({ on, onChange, label, disabled }) {
+  return (
+    <button
+      role="switch"
+      aria-checked={!!on}
+      aria-label={label}
+      aria-disabled={disabled}
+      className={cx('switch', on && 'on')}
+      onClick={() => {
+        haptic(10);
+        onChange?.(!on);
+      }}
+    />
+  );
+}
+
+export function Avatar({ name = '?', size = 44, hue = '#7aa774', src, ring, style }) {
+  const initials = name
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  return (
+    <div
+      className="avatar"
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.38,
+        background: `radial-gradient(circle at 30% 25%, color-mix(in srgb, ${hue} 55%, white), ${hue} 75%)`,
+        boxShadow: ring ? `0 0 0 3px ${hue}55, 0 0 0 2px var(--card-solid)` : undefined,
+        ...style,
+      }}
+    >
+      {src ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
+    </div>
+  );
+}
+
