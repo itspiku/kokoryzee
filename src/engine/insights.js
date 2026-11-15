@@ -69,3 +69,73 @@ export function valueText(key, v) {
   }
 }
 
+// ── clinician alert from an analysis ──
+export function alertFromAnalysis(patient, a, now, { ageH = 2 } = {}) {
+  const first = patient.name.split(' ')[0];
+  const createdAt = now - ageH * HOUR;
+  const base = { id: uid('al'), patientId: patient.id, createdAt, owner: DOCTOR.name, model: MODEL_VERSION, status: 'new' };
+  const top = a.shifted.slice(0, 5).map((s) => ({ key: s.key, label: s.meta.label, delta: deltaText(s), badness: s.badness, z: s.z }));
+  const mkAudit = (extra = []) => [
+    { t: createdAt, actor: MODEL_VERSION, action: 'Created', note: 'Rule matched on personal baseline' },
+    { t: createdAt + 4000, actor: 'System', action: 'Routed to Dr. Elena Marsh', note: 'Responsible clinician' },
+    ...extra,
+  ];
+
+  if (a.status === 'review') {
+    return {
+      ...base,
+      level: 'review',
+      title: `Review suggested · ${patient.name}`,
+      reason: `Over the last ${a.recentDays} days, ${a.shifted.length} of 8 core signals moved away from ${first}’s own 14-day baseline in the same direction — ${a.shifted
+        .slice(0, 3)
+        .map((s) => s.meta.short.toLowerCase())
+        .join(', ')}. Agreement across independent sensors makes a single-sensor artefact less likely. This is a prompt to look, not a diagnosis.`,
+      signals: top,
+      confidence: a.confidence,
+      window: `Last ${a.recentDays} days vs. personal 14-day baseline`,
+      rule: '≥ 3 core signals shifted > 0.9 σ (personal) · composite ≥ 0.85 · confidence ≥ 0.55',
+      audit: mkAudit(),
+    };
+  }
+  if (a.status === 'shift') {
+    return {
+      ...base,
+      level: 'watch',
+      title: `Gentle shift · ${patient.name}`,
+      reason: `${a.shifted.length} signals have moved slightly from ${first}’s baseline. Below the review threshold; shown for awareness.`,
+      signals: top,
+      confidence: a.confidence,
+      window: `Last ${a.recentDays} days vs. personal 14-day baseline`,
+      rule: '≥ 2 core signals shifted > 0.9 σ (personal) · composite ≥ 0.55',
+      audit: mkAudit(),
+    };
+  }
+  if (a.status === 'gap') {
+    return {
+      ...base,
+      level: 'data',
+      title: `Wearable not synced · ${patient.name}`,
+      reason: `No wearable data for ${a.trailingGap} days. This is usually a charging or connection issue, not a health signal. Consider a friendly nudge — no change to the care plan is needed.`,
+      signals: [],
+      confidence: 0.9,
+      window: `${a.trailingGap} days without sync`,
+      rule: 'No wearable data ≥ 3 consecutive days',
+      audit: mkAudit(),
+    };
+  }
+  if (a.status === 'forming') {
+    return {
+      ...base,
+      level: 'data',
+      title: `Baseline still forming · ${patient.name}`,
+      reason: `Only ${a.wearDays} of the last ${a.recentDays} days have wearable data and the personal baseline needs about two weeks. Alerts stay quiet until then so no one is compared with a population average.`,
+      signals: [],
+      confidence: a.confidence,
+      window: 'Baseline window not yet complete',
+      rule: 'Insufficient baseline data (< 14 days)',
+      audit: mkAudit(),
+    };
+  }
+  return null;
+}
+
