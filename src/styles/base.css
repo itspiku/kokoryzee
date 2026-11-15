@@ -648,3 +648,65 @@ svg {
   background: var(--primary-soft);
   color: var(--primary);
 }
+
+/* inputs */
+.field {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  resize: none;
+}
+.field:focus {
+  border-color: var(--primary-2);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+.field::placeholder {
+  color: var(--ink-3);
+}
+
+/* sheets */
+.overlay-root {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+}
+.overlay-root > * {
+  pointer-events: auto;
+}
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 34, 27, 0.42);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 92%;
+  display: flex;
+  flex-direction: column;
+  background: var(--sheet-bg);
+  border-radius: 34px 34px 0 0;
+  box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, 0.4);
+  padding: 10px 20px calc(var(--safe-bottom) + 22px);
+  border: 1px solid var(--card-border);
+  border-bottom: 0;
+  touch-action: none;
+}
+.sheet-grab {
+  width: 44px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line-2);
+  margin: 0 auto 14px;
+  flex: none;
+}
