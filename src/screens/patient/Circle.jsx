@@ -201,3 +201,53 @@ export default function Circle() {
   );
 }
 
+function AddPerson({ open, onClose }) {
+  const [name, setName] = useState('');
+  const [rel, setRel] = useState('');
+  const [hue, setHue] = useState(CIRCLE_HUES[3]);
+  const circle = useStore((s) => s.circle);
+  const submit = () => {
+    if (!name.trim()) return;
+    actions.addCircle({ name: name.trim().split(' ')[0], full: name.trim(), rel: rel.trim() || 'Someone I trust', hue, note: 'Added just now' });
+    toast(`${name.trim().split(' ')[0]} is in your circle`, { icon: 'UserPlus' });
+    setName(''); setRel('');
+    onClose();
+  };
+  return (
+    <Sheet open={open} onClose={onClose} title="Add someone you trust">
+      <p className="t-sm t-soft mb-12">They’ll only hear from you if you choose to message them. You can change what they see at any time.</p>
+      <div className="stack gap-10">
+        <input className="field" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="field" placeholder="Who are they to you? (optional)" value={rel} onChange={(e) => setRel(e.target.value)} />
+        <div className="row-flex gap-10">
+          {CIRCLE_HUES.map((h) => <button key={h} aria-label={`Colour ${h}`} onClick={() => setHue(h)} style={{ width: 34, height: 34, borderRadius: '50%', background: h, boxShadow: hue === h ? `0 0 0 3px var(--card-solid), 0 0 0 5px ${h}` : 'none', transition: 'box-shadow .3s' }} />)}
+        </div>
+        <Btn kind="primary" size="lg" block onClick={submit} disabled={!name.trim()} icon="UserPlus">Add to my circle</Btn>
+        <div className="t-xs t-faint center">{circle.length}/5 people</div>
+      </div>
+    </Sheet>
+  );
+}
+
+// ───────────────────────────────── chat with one person
+export function CircleChat({ params }) {
+  const p = useStore((s) => s.circle.find((c) => c.id === params.id));
+  const messages = useStore((s) => s.threads[`circle:${params.id}`] || EMPTY);
+  const [typing, setTyping] = useState(false);
+  useEffect(() => { actions.markRead(`circle:${params.id}`, 'p'); }, [params.id, messages.length]);
+  if (!p) return <Screen tabs={false}><TopBar onBack={() => back('/p/circle')} title="Circle" /></Screen>;
+  const send = (t) => {
+    actions.sendMessage(`circle:${p.id}`, 'alex', t);
+    setTyping(true);
+    setTimeout(() => setTyping(false), 2400);
+    simulateReply(p, [2500, 3800]);
+  };
+  return (
+    <Screen tabs={false} noScroll padTop={false} className="chat-screen">
+      <div style={{ padding: 'calc(var(--safe-top) + 12px) 20px 0' }}>
+        <TopBar onBack={() => back('/p/circle')} title={p.full} sub={p.rel} right={<Avatar name={p.name} hue={p.hue} size={44} ring />} />
+      </div>
+      <Chat messages={messages} me="alex" onSend={send} typing={typing} people={{ [p.id]: { name: p.name, hue: p.hue } }} quick={SUPPORT_MESSAGES.slice(0, 3)} placeholder={`Message ${p.name}…`} />
+    </Screen>
+  );
+}
