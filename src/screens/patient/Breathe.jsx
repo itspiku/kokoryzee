@@ -160,3 +160,30 @@ export default function Breathe() {
   );
 }
 
+function BreathOrb({ scale, idle }) {
+  const s = scale;
+  const ring1 = useTransform(s, (v) => 0.9 + v * 0.35);
+  const ring2 = useTransform(s, (v) => 0.8 + v * 0.55);
+  const ring3 = useTransform(s, (v) => 0.7 + v * 0.8);
+  const glow = useTransform(s, [0.55, 1], [0.35, 0.9]);
+  const o1 = useTransform(s, [0.55, 1], [0.1, 0.3]);
+  const o2 = useTransform(s, [0.55, 1], [0.15, 0.4]);
+  const o3 = useTransform(s, [0.55, 1], [0.2, 0.5]);
+  const pScale = useTransform(s, [0.55, 1], [0.7, 1.15]);
+  const pRot = useTransform(s, [0.55, 1], [0, 45]);
+  return (
+    <div className="breath-orb">
+      <motion.div className="ring" style={{ scale: ring3, opacity: o1 }} />
+      <motion.div className="ring" style={{ scale: ring2, opacity: o2 }} />
+      <motion.div className="ring" style={{ scale: ring1, opacity: o3 }} />
+      <motion.div className="petals" style={{ scale: pScale, rotate: pRot }}>
+        {Array.from({ length: 8 }, (_, i) => <i key={i} style={{ transform: `rotate(${i * 45}deg) translateY(-52px)` }} />)}
+      </motion.div>
+      <motion.div className="core" style={{ scale: s }}>
+        <motion.div className="core-glow" style={{ opacity: glow }} />
+      </motion.div>
+      {idle && <motion.div className="idle-pulse" animate={{ scale: [0.9, 1.15, 0.9] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />}
+    </div>
+  );
+}
+
