@@ -62,3 +62,97 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ── Day ─────────────────────────────────────────────────── */
+:root,
+[data-theme='day'] {
+  color-scheme: light;
+  --paper: #f5f1e7;
+  --paper-2: #edf2e3;
+  --paper-3: #e2ebd7;
+  --bg: var(--paper);
+  --bg-grad: linear-gradient(180deg, #f7f3e9 0%, #eef2e4 55%, #e6eddb 100%);
+
+  --ink: #20332b;
+  --ink-2: #4f6258;
+  --ink-3: #85948b;
+  --ink-inv: #fffdf7;
+
+  --card: rgba(255, 253, 247, 0.74);
+  --card-solid: #fffdf8;
+  --card-2: rgba(255, 253, 247, 0.5);
+  --card-border: rgba(255, 255, 255, 0.75);
+  --line: rgba(36, 64, 47, 0.1);
+  --line-2: rgba(36, 64, 47, 0.18);
+
+  --primary: #4d7f59;
+  --primary-2: #5f9569;
+  --primary-ink: #fffdf7;
+  --primary-soft: rgba(95, 149, 105, 0.14);
+  --accent: #e68d57;
+  --accent-soft: rgba(240, 168, 119, 0.2);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 14px 34px -16px rgba(52, 88, 64, 0.3),
+    0 2px 6px -2px rgba(52, 88, 64, 0.08);
+  --shadow-pop: 0 24px 60px -18px rgba(36, 64, 47, 0.38), 0 6px 14px -6px rgba(36, 64, 47, 0.16);
+  --shadow-btn: 0 10px 24px -10px rgba(52, 88, 64, 0.6), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+
+  --chart-line: #4d7f59;
+  --chart-band: rgba(122, 167, 116, 0.22);
+  --chart-grid: rgba(36, 64, 47, 0.07);
+
+  --blob-a: #cfe6c0;
+  --blob-b: #fadcc0;
+  --blob-c: #d9d2f1;
+  --glass-soft: rgba(255, 255, 255, 0.66);
+  --blob-opacity: 0.75;
+  --grain-opacity: 0.045;
+  --tab-bg: rgba(250, 247, 238, 0.78);
+  --sheet-bg: #f9f6ee;
+}
+
+/* ── Evening ─────────────────────────────────────────────── */
+[data-theme='evening'] {
+  color-scheme: dark;
+  --paper: #101b17;
+  --paper-2: #14231d;
+  --paper-3: #19302a;
+  --bg: var(--paper);
+  --bg-grad: linear-gradient(180deg, #0f1a16 0%, #12211b 60%, #14271f 100%);
+
+  --ink: #eaf1e6;
+  --ink-2: #a9bbb0;
+  --ink-3: #70847a;
+  --ink-inv: #0f1a16;
+
+  --card: rgba(255, 255, 255, 0.065);
+  --card-solid: #182a23;
+  --card-2: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.09);
+  --line: rgba(234, 241, 230, 0.09);
+  --line-2: rgba(234, 241, 230, 0.18);
+
+  --primary: #9fcca8;
+  --primary-2: #b4dbbb;
+  --primary-ink: #0f1a16;
+  --primary-soft: rgba(159, 204, 168, 0.16);
+  --accent: #f0a877;
+  --accent-soft: rgba(240, 168, 119, 0.16);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 28px 70px -20px rgba(0, 0, 0, 0.8);
+  --shadow-btn: 0 12px 28px -12px rgba(159, 204, 168, 0.5), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+
+  --chart-line: #a9d6b1;
+  --chart-band: rgba(159, 204, 168, 0.16);
+  --chart-grid: rgba(234, 241, 230, 0.07);
+
+  --blob-a: #2c5a45;
+  --blob-b: #5b3f3a;
+  --blob-c: #3b3a68;
+  --glass-soft: rgba(255, 255, 255, 0.12);
+  --blob-opacity: 0.55;
+  --grain-opacity: 0.07;
+  --tab-bg: rgba(18, 31, 26, 0.78);
+  --sheet-bg: #15251f;
+}
