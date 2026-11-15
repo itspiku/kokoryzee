@@ -892,3 +892,69 @@ svg {
   overflow: hidden;
   box-shadow: 0 0 0 2px var(--card-solid), 0 6px 14px -6px rgba(0, 0, 0, 0.35);
 }
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.scroll-x {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding: 0 20px;
+  padding: 4px 20px 14px;
+  margin: 0 -20px;
+}
+.scroll-x > * {
+  scroll-snap-align: start;
+  flex: none;
+}
+.shimmer {
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.5) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: shimmer 2.4s linear infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-2);
+  position: relative;
+}
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: halo 2.2s var(--ease-soft) infinite;
+}
+.progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.progress > i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--sage-400), var(--primary));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob,
+  .tab-help .orb::before,
+  .tab-help .orb::after,
+  .shimmer,
+  .pulse-dot::after {
+    animation: none !important;
+  }
+}
