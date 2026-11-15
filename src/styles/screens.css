@@ -288,3 +288,58 @@
   color: var(--ink-2);
   font-size: 15px;
 }
+.human-card {
+  border: 1.5px solid var(--accent-soft);
+}
+.crisis-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--card);
+  text-decoration: none;
+  border: 1px solid var(--line);
+}
+.crisis-call {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(212, 116, 104, 0.15);
+  color: var(--rose-500);
+}
+
+/* ── breathing ── */
+.orb-preview {
+  height: 220px;
+  display: grid;
+  place-items: center;
+}
+.breath-run {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+}
+.breath-stage {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  display: grid;
+  place-items: center;
+}
+.breath-progress {
+  position: absolute;
+  inset: 0;
+}
+.breath-orb {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  left: 50px;
+  top: 50px;
+  display: grid;
+  place-items: center;
+}
