@@ -70,3 +70,80 @@ function InsightCard({ c, series, open, onToggle, i }) {
   );
 }
 
+export default function Insights({ query }) {
+  const { series, analysis } = usePatientData('alex');
+  const feedback = useStore((s) => s.feedback);
+  const cognitive = useStore((s) => s.cognitive);
+  const cards = useMemo(() => patientCards(series, analysis), [series, analysis]);
+  const stats = useMemo(() => Object.values(responseStats(feedback)).filter((o) => o.n >= 3).sort((a, b) => b.rate - a.rate).slice(0, 5), [feedback]);
+  const [open, setOpen] = useState(query?.focus || null);
+  useEffect(() => { setOpen(query?.focus || null); }, [query?.focus]);
+
+  return (
+    <Screen tabs={false}>
+      <TopBar backTo="/p/home" sub="Insights" title="Your patterns" />
+      <Rise i={0}>
+        <Card tint="sage" className="row-flex gap-12">
+          <Koko size={72} mood="calm" glow={false} />
+          <div>
+            <div className="t-cap">This week, in plain words</div>
+            <p className="serif mt-4" style={{ fontSize: 18, lineHeight: 1.3 }}>{weekInWords(analysis)}</p>
+          </div>
+        </Card>
+      </Rise>
+      <p className="t-xs t-faint mt-8 center">No scores. No streaks. Never compared with anyone else — only with your own usual.</p>
+
+      <SectionTitle sub="Each ring is one night. The arc shows when you slept.">Your daily rhythm</SectionTitle>
+      <InView>
+        <Card className="center" style={{ display: 'grid', placeItems: 'center' }}>
+          <CircadianRings series={series} size={270} />
+          <div className="row-flex gap-16 t-xs t-faint mt-8"><span className="row-flex gap-6"><i className="leg" style={{ background: 'var(--lav-400)' }} /> Asleep</span><span className="row-flex gap-6"><i className="leg" style={{ background: 'var(--line-2)' }} /> Awake</span></div>
+        </Card>
+      </InView>
+
+      <SectionTitle sub="Tap any card to see what’s behind it">What your body has been saying</SectionTitle>
+      <div className="stack gap-14" style={{ gap: 14 }}>
+        {cards.map((c, i) => <InsightCard key={c.id} c={c} series={series} i={i} open={open === c.id} onToggle={() => setOpen(open === c.id ? null : c.id)} />)}
+      </div>
+
+      <SectionTitle sub="From your own feedback — never compared with others">What tends to help you</SectionTitle>
+      <InView>
+        <Card>
+          <div className="stack gap-14" style={{ gap: 14 }}>
+            {stats.map((s, i) => (
+              <div key={s.kind}>
+                <div className="row-flex between"><span className="bold t-sm">{s.label}</span><span className="t-xs t-faint">helped {s.helpedCount} of {s.n}</span></div>
+                <div className="help-bar"><motion.i initial={{ width: 0 }} whileInView={{ width: `${Math.round(s.rate * 100)}%` }} viewport={{ once: true }} transition={{ delay: 0.15 + i * 0.1, duration: 1, ease: [0.22, 0.8, 0.28, 1] }} /></div>
+              </div>
+            ))}
+          </div>
+          <p className="t-xs t-faint mt-12">The more you tell Kokoryze what helps, the better its gentle suggestions get.</p>
+        </Card>
+      </InView>
+
+      <SectionTitle sub="Optional · short · never scored">Thinking & memory</SectionTitle>
+      <InView>
+        <Card className="row-flex gap-12" onClick={() => go('/p/games')}>
+          <div className="ico-dot lg"><Icon name="Brain" size={24} /></div>
+          <div className="grow">
+            <div className="bold">{cognitive.length ? `${cognitive.length} little game${cognitive.length > 1 ? 's' : ''} played` : 'Two tiny games, whenever you like'}</div>
+            <div className="t-sm t-soft">{cognitive.length ? 'See how you’re doing against your own usual.' : 'A reaction game and a memory game. About a minute each.'}</div>
+          </div>
+          <Icon name="ChevronRight" size={18} style={{ opacity: 0.5 }} />
+        </Card>
+      </InView>
+
+      <InView className="mt-24">
+        <Card tint="sky" className="row-flex gap-12" onClick={() => go('/p/privacy')}>
+          <div className="ico-dot" style={{ background: 'var(--glass-soft)' }}><Icon name="ShieldCheck" size={19} /></div>
+          <div className="grow">
+            <div className="bold t-sm">Shared with {DOCTOR.short} before visits</div>
+            <div className="t-xs t-soft">A one-page summary of these patterns. You choose what’s included.</div>
+          </div>
+          <Icon name="ChevronRight" size={16} style={{ opacity: 0.5 }} />
+        </Card>
+      </InView>
+      <p className="t-xs t-faint center mt-16" style={{ padding: '0 12px' }}>Kokoryze notices patterns in your own data. It can’t diagnose anything, and a few unusual days are very normal. If you’re worried, talk to {DOCTOR.short}.</p>
+    </Screen>
+  );
+}
