@@ -372,3 +372,61 @@ const draw = {
   },
 };
 
+export default function SceneArt({ scene, active = true, style }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const cv = ref.current;
+    if (!cv) return;
+    const c = cv.getContext('2d');
+    let w = 0, h = 0, raf = 0, last = performance.now(), t = 0;
+    const S = { drops: [], rings: [], motes: [], birds: [], notes: [], embers: [], event: false };
+    const spec = new Uint8Array(128);
+    let E = 0.15;
+    const resize = () => {
+      const r = cv.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = r.width; h = r.height;
+      cv.width = Math.max(1, Math.round(w * dpr));
+      cv.height = Math.max(1, Math.round(h * dpr));
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(cv);
+
+    const offs = [
+      engine.on('bowl', () => { S.rings.push({ r: 40, a: 0.9, v: 90 }, { r: 40, a: 0.55, v: 60 }, { r: 40, a: 0.35, v: 40 }); }),
+      engine.on('bird', () => { S.event = true; }),
+      engine.on('ember', () => { S.event = true; }),
+      engine.on('note', ({ pitch }) => {
+        const x = w * (0.12 + Math.max(0, Math.min(1, pitch)) * 0.76);
+        S.notes.push({ x, y: h * (0.68 + R() * 0.06), v: 26 + R() * 24, life: 0, ph: R() * 6, s: 0.8 + R() * 0.6 });
+        if (S.notes.length > 12) S.notes.shift();
+      }),
+    ];
+
+    const fn = draw[scene.art];
+    const loop = (now) => {
+      raf = requestAnimationFrame(loop);
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      t += dt;
+      let e = 0;
+      if (engine.spectrum(spec) && engine.playing) {
+        let s = 0;
+        for (let i = 0; i < 24; i++) s += spec[i];
+        e = s / 24 / 255;
+      } else e = 0.1 + Math.sin(t * 0.6) * 0.05;
+      E += (e - E) * 0.08;
+      c.clearRect(0, 0, w, h);
+      if (active && fn) fn(c, w, h, t, dt, E, S, scene);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      offs.forEach((o) => o());
+    };
+  }, [scene, active]);
+  return <canvas ref={ref} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', ...style }} />;
+}
