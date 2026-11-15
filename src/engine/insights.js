@@ -139,3 +139,156 @@ export function alertFromAnalysis(patient, a, now, { ageH = 2 } = {}) {
   return null;
 }
 
+// ── patient-facing gentle language ──
+function lastVals(series, key, n = 14) {
+  return series.slice(-n).map((r) => (isNum(r[key]) ? r[key] : null));
+}
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+export function patientCards(series, a) {
+  const S = a.signals;
+  const dayLabel = (n) => (n >= 5 ? 'most days' : `${n} of the last 5 days`);
+  const conf = (key) => {
+    const s = S[key];
+    if (!s) return { label: 'Still learning', text: 'We need a few more days of data before saying anything.' };
+    const frac = s.nRecent / 5;
+    return frac >= 0.8
+      ? { label: 'Fairly sure', text: `Based on ${plural(s.nRecent, 'recent day')} of watch data compared with your last ${s.nBase} days.` }
+      : { label: 'Less sure', text: `Only ${plural(s.nRecent, 'recent day')} of data, so please treat this lightly.` };
+  };
+  const cards = [];
+
+  // Sleep
+  if (S.sleepDur) {
+    const s = S.sleepDur;
+    const m = Math.round(Math.abs(s.delta) * 60);
+    let tone = 'steady',
+      headline = 'Your sleep is close to your usual.',
+      detail = 'Nothing has changed much lately.';
+    if (s.badness >= 0.9) {
+      tone = 'soft';
+      headline = 'Sleep has been a little lighter than usual.';
+      detail = `About ${m} minutes less each night over ${dayLabel(s.nRecent)}.`;
+    } else if (s.badness <= -0.9) {
+      tone = 'bright';
+      headline = 'You’ve been getting more rest than usual.';
+      detail = `About ${m} minutes more each night. That’s good for the brain.`;
+    }
+    cards.push({
+      id: 'sleep',
+      title: 'Sleep',
+      icon: 'Moon',
+      tone,
+      headline,
+      detail,
+      keys: ['sleepDur'],
+      unitFmt: (v) => fmtDur(v),
+      series: lastVals(series, 'sleepDur'),
+      band: s.band,
+      contributors: [
+        S.sleepMid ? `Bedtime timing (${deltaText(S.sleepMid)})` : null,
+        S.nightPhone ? `Phone use late at night (${deltaText(S.nightPhone)})` : null,
+        S.restHR ? `Resting heart rate (${deltaText(S.restHR)})` : null,
+      ].filter(Boolean),
+      confidence: conf('sleepDur'),
+      why: 'Sleep is when your brain consolidates memories and resets mood circuits. Small shifts are normal, and a few lighter nights are rarely a concern on their own.',
+      suggestion: { label: 'Try a wind-down sound tonight', to: '/p/sounds' },
+    });
+  }
+  // Heart & stress
+  if (S.restHR || S.hrv) {
+    const hr = S.restHR;
+    const hv = S.hrv;
+    const worse = (hr && hr.badness >= 0.9) || (hv && hv.badness >= 0.9);
+    const better = (hr && hr.badness <= -0.9) || (hv && hv.badness <= -0.9);
+    cards.push({
+      id: 'heart',
+      title: 'Heart & calm',
+      icon: 'HeartPulse',
+      tone: worse ? 'soft' : better ? 'bright' : 'steady',
+      headline: worse ? 'Your body has been working a touch harder.' : better ? 'Your body seems more settled than usual.' : 'Your heart rhythm looks steady.',
+      detail: worse
+        ? 'Your resting heart has been a little busier and your recovery signal a little quieter. Often this follows lighter sleep or a stressful stretch.'
+        : better
+        ? 'Resting heart is calmer and recovery is stronger than your usual.'
+        : 'Resting heart and recovery are right around your normal.',
+      keys: ['restHR'],
+      unitFmt: (v) => `${Math.round(v)} bpm`,
+      series: lastVals(series, 'restHR'),
+      band: hr?.band,
+      contributors: [hr ? `Resting heart rate (${deltaText(hr)})` : null, hv ? `Recovery / HRV (${deltaText(hv)})` : null].filter(Boolean),
+      confidence: conf('restHR'),
+      why: 'Resting heart rate and HRV reflect how rested and stressed your body is. They move with sleep, illness, caffeine and mood, so they’re hints, not answers.',
+      suggestion: { label: 'Take a three-minute breather', to: '/p/breathe' },
+    });
+  }
+  // Movement
+  if (S.steps) {
+    const s = S.steps;
+    const k = Math.round(Math.abs(s.delta) / 100) / 10;
+    cards.push({
+      id: 'move',
+      title: 'Movement',
+      icon: 'Footprints',
+      tone: s.badness >= 0.9 ? 'soft' : s.badness <= -0.9 ? 'bright' : 'steady',
+      headline: s.badness >= 0.9 ? 'Gentler days lately — that’s okay.' : s.badness <= -0.9 ? 'You’ve been moving more than usual.' : 'Your movement is about your usual.',
+      detail:
+        s.badness >= 0.9
+          ? `About ${k}k fewer steps a day than your usual. Even a short stroll can lift the mood.`
+          : s.badness <= -0.9
+          ? `About ${k}k more steps a day than your usual — nicely done.`
+          : `Around ${Math.round(s.recentMean).toLocaleString()} steps a day.`,
+      keys: ['steps'],
+      unitFmt: (v) => Math.round(v).toLocaleString(),
+      series: lastVals(series, 'steps'),
+      band: s.band,
+      contributors: [S.activeMin ? `Active minutes (${deltaText(S.activeMin)})` : null].filter(Boolean),
+      confidence: conf('steps'),
+      why: 'Light movement is one of the most reliable gentle supports for mood and sleep, but there is no target here. Rest is part of recovery.',
+      suggestion: { label: 'See a gentle outing', to: '/p/going-out' },
+    });
+  }
+  // Rhythm
+  if (S.sleepMid) {
+    const s = S.sleepMid;
+    const m = Math.round(Math.abs(s.delta) * 60);
+    cards.push({
+      id: 'rhythm',
+      title: 'Daily rhythm',
+      icon: 'Sunrise',
+      tone: s.badness >= 0.9 ? 'soft' : 'steady',
+      headline: s.badness >= 0.9 ? 'Your body clock has drifted a little later.' : 'Your daily rhythm is steady.',
+      detail: s.badness >= 0.9 ? `Sleep is centred about ${m} minutes later than usual. Morning light can help nudge it back.` : 'Sleep and wake times are close to your usual pattern.',
+      keys: ['sleepMid'],
+      unitFmt: (v) => hhmm(v),
+      series: lastVals(series, 'sleepMid'),
+      band: s.band,
+      contributors: [S.nightPhone ? `Phone use after midnight (${deltaText(S.nightPhone)})` : null].filter(Boolean),
+      confidence: conf('sleepMid'),
+      why: 'A steady body clock supports mood. Regular light, meals and wake-times are among the most helpful rhythms.',
+      suggestion: { label: 'Step into daylight', to: '/p/going-out' },
+    });
+  }
+  // Connection
+  if (S.social) {
+    const s = S.social;
+    cards.push({
+      id: 'connect',
+      title: 'Connection',
+      icon: 'HeartHandshake',
+      tone: s.badness >= 0.9 ? 'soft' : s.badness <= -0.9 ? 'bright' : 'steady',
+      headline: s.badness >= 0.9 ? 'Quieter on the people side lately.' : s.badness <= -0.9 ? 'More connection than usual — lovely.' : 'You’re in touch with people about as usual.',
+      detail: s.badness >= 0.9 ? 'No pressure — one small hello often goes a long way.' : 'Calls and messages are a quiet source of support.',
+      keys: ['social'],
+      unitFmt: (v) => `${Math.round(v)}`,
+      series: lastVals(series, 'social'),
+      band: s.band,
+      contributors: [],
+      confidence: conf('social'),
+      why: 'We only count how many people you were in touch with — never who, and never what you said.',
+      suggestion: { label: 'Say hello to someone in your circle', to: '/p/circle' },
+    });
+  }
+  return cards;
+}
+
