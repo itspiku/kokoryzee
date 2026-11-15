@@ -160,3 +160,105 @@ export function BandChart({ values, band, height = 110, color = 'var(--chart-lin
   );
 }
 
+/** Tiny inline sparkline */
+export function Spark({ values, width = 84, height = 30, color = 'var(--chart-line)', band, fill = true }) {
+  const gid = useId().replace(/:/g, '');
+  const v = values.filter(isNum);
+  if (v.length < 2) return <div style={{ width, height }} />;
+  let lo = Math.min(...v, ...(band || [])),
+    hi = Math.max(...v, ...(band || []));
+  const span = hi - lo || 1;
+  lo -= span * 0.1;
+  hi += span * 0.1;
+  const x = (i) => 3 + (i / (values.length - 1)) * (width - 6);
+  const y = (val) => 3 + (1 - (val - lo) / (hi - lo)) * (height - 6);
+  const pts = values.map((val, i) => (isNum(val) ? [x(i), y(val)] : null));
+  const segs = runs(pts);
+  return (
+    <svg width={width} height={height} style={{ overflow: 'visible' }}>
+      <defs>
+        <linearGradient id={`s${gid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={color} stopOpacity="0.3" />
+          <stop offset="1" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {band && <rect x="0" width={width} y={Math.min(y(band[0]), y(band[1]))} height={Math.abs(y(band[0]) - y(band[1]))} rx="4" fill="var(--chart-band)" />}
+      {segs.map((s, i) => {
+        const d = smoothPath(s, 0.9);
+        return (
+          <g key={i}>
+            {fill && s.length > 1 && <path d={`${d} L${s[s.length - 1][0]},${height} L${s[0][0]},${height}Z`} fill={`url(#s${gid})`} />}
+            <motion.path d={d} stroke={color} strokeWidth="2.2" fill="none" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.1, delay: 0.2 }} />
+          </g>
+        );
+      })}
+      {(() => {
+        const last = [...pts].reverse().find(Boolean);
+        return last ? <circle cx={last[0]} cy={last[1]} r="3.2" fill={color} /> : null;
+      })()}
+    </svg>
+  );
+}
+
+/** Concentric 24h rings — each ring is a night; arcs show when sleep happened. */
+export function CircadianRings({ series, size = 260, nights = 7 }) {
+  const data = series.slice(-nights);
+  const cx = size / 2,
+    cy = size / 2;
+  const R0 = size / 2 - 14;
+  const gap = Math.min(22, (R0 - 40) / nights);
+  const ang = (h) => (((h % 24) + 24) % 24) / 24 * 2 * Math.PI - Math.PI / 2;
+  const arc = (r, h0, h1) => {
+    const a0 = ang(h0);
+    let a1 = ang(h1);
+    if (a1 < a0) a1 += 2 * Math.PI;
+    const large = a1 - a0 > Math.PI ? 1 : 0;
+    return `M${cx + r * Math.cos(a0)},${cy + r * Math.sin(a0)} A${r},${r} 0 ${large} 1 ${cx + r * Math.cos(a1)},${cy + r * Math.sin(a1)}`;
+  };
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Sleep timing over the last week">
+      <defs>
+        <linearGradient id="circ-sleep" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#c6bbea" />
+          <stop offset="1" stopColor="#8878c8" />
+        </linearGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={R0 + 8} fill="none" stroke="var(--line)" />
+      {[0, 6, 12, 18].map((h) => {
+        const a = ang(h);
+        const lx = cx + (R0 + 20) * Math.cos(a);
+        const ly = cy + (R0 + 20) * Math.sin(a) + 3.5;
+        return (
+          <text key={h} x={lx} y={ly} fontSize="10.5" textAnchor="middle" fill="var(--ink-3)" fontWeight="650">
+            {h === 0 ? '12a' : h === 12 ? '12p' : h > 12 ? `${h - 12}p` : `${h}a`}
+          </text>
+        );
+      })}
+      {data.map((r, i) => {
+        const rad = R0 - (nights - 1 - i) * gap;
+        const base = <circle key={`b${i}`} cx={cx} cy={cy} r={rad} fill="none" stroke="var(--line)" strokeWidth="10" opacity="0.7" />;
+        if (!isNum(r.sleepMid) || !isNum(r.sleepDur)) return base;
+        const s0 = r.sleepMid - r.sleepDur / 2;
+        const s1 = r.sleepMid + r.sleepDur / 2;
+        return (
+          <g key={i}>
+            {base}
+            <motion.path
+              d={arc(rad, s0, s1)}
+              fill="none"
+              stroke="url(#circ-sleep)"
+              strokeWidth="10"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: i === data.length - 1 ? 1 : 0.55 + (i / data.length) * 0.4 }}
+              transition={{ duration: 1.1, delay: 0.2 + i * 0.12, ease: [0.22, 0.8, 0.28, 1] }}
+            />
+          </g>
+        );
+      })}
+      <text x={cx} y={cy - 2} textAnchor="middle" fontSize="12" fill="var(--ink-3)" fontWeight="650" letterSpacing=".08em">LAST</text>
+      <text x={cx} y={cy + 16} textAnchor="middle" fontSize="20" fontFamily="Fraunces Variable, serif" fill="var(--ink)" fontWeight="560">{data.length} nights</text>
+    </svg>
+  );
+}
+
