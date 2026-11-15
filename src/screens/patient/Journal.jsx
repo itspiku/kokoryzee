@@ -213,3 +213,44 @@ export function JournalNew({ query }) {
   );
 }
 
+function ClipPreview({ clip }) {
+  const [url] = useState(() => URL.createObjectURL(clip.blob));
+  const [p, setP] = useState(0);
+  const [on, setOn] = useState(false);
+  return (
+    <div className="voice-player mt-16" style={{ width: '100%' }}>
+      <audio src={url} id="clip" onTimeUpdate={(e) => setP(e.target.currentTime / (e.target.duration || clip.duration || 1))} onEnded={() => setOn(false)} />
+      <button className="vp-btn" onClick={() => { const a = document.getElementById('clip'); if (on) a.pause(); else a.play(); setOn(!on); }}><Icon name={on ? 'Pause' : 'Play'} size={20} /></button>
+      <div className="grow" style={{ height: 36 }}><div style={{ display: 'flex', gap: 3, height: '100%', alignItems: 'center' }}>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ flex: 1, height: `${25 + 75 * Math.abs(Math.sin(i * 0.8))}%`, borderRadius: 3, background: 'var(--primary-2)', opacity: i / 36 < p ? 1 : 0.3 }} />)}</div></div>
+    </div>
+  );
+}
+
+// ───────────────────────────────────────── entry
+export function JournalEntry({ params }) {
+  const j = useStore((s) => s.journal.find((x) => x.id === params.id));
+  const [del, setDel] = useState(false);
+  if (!j) return (
+    <Screen tabs={false}><TopBar onBack={() => back('/p/journal')} title="Entry" /><Card flat className="center t-soft">This entry isn’t here anymore.</Card></Screen>
+  );
+  return (
+    <Screen tabs={false}>
+      <TopBar onBack={() => back('/p/journal')} sub={`${fmtDay(j.t, { weekday: 'long', month: 'long', day: 'numeric' })} · ${fmtTime(j.t)}`} right={<button className="icon-btn" onClick={() => setDel(true)} aria-label="Delete"><Icon name="Trash2" size={19} /></button>} />
+      <Rise>
+        <h1 className="h1">{j.title}</h1>
+        {j.themes?.length > 0 && <div className="tag-row mt-12">{j.themes.map((t) => <Pill key={t} tone="mute" icon={themeIcon[t]}>{t}</Pill>)}</div>}
+        {j.type === 'voice' && <div className="mt-16"><VoicePlayer audioId={j.audioId} /></div>}
+        {j.body && <div className="entry-body mt-16">{j.body.split('\n').map((l, i) => <p key={i}>{l || ' '}</p>)}</div>}
+      </Rise>
+      <Card className="mt-24 row-flex gap-12">
+        <div className="ico-dot"><Icon name={j.shared ? 'Share2' : 'Lock'} size={19} /></div>
+        <div className="grow">
+          <div className="bold t-sm">{j.shared ? `Shared with ${DOCTOR.short}` : 'Private to you'}</div>
+          <div className="t-xs t-faint">{j.shared ? 'Visible in the pre-visit summary. Switch off any time.' : `Share this entry with ${DOCTOR.short} before a visit, if you’d like.`}</div>
+        </div>
+        <Switch on={j.shared} onChange={(v) => { actions.updateJournal(j.id, { shared: v }); actions.addAudit(v ? 'Journal entry shared' : 'Journal entry unshared', j.title, 'Alex Morgan', 'Alex Morgan', 'patient'); toast(v ? `Shared with ${DOCTOR.short}` : 'Private again', { icon: v ? 'Share2' : 'Lock' }); }} label="Share with doctor" />
+      </Card>
+      <Confirm open={del} danger onClose={() => setDel(false)} title="Delete this entry?" body="This removes it from your device. It can’t be undone." confirm="Delete" onConfirm={() => { actions.deleteJournal(j.id); back('/p/journal'); }} />
+    </Screen>
+  );
+}
