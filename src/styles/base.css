@@ -292,3 +292,63 @@ svg {
   background: radial-gradient(circle at 50% 50%, var(--blob-b), transparent 68%);
   animation: drift-b 31s var(--ease-breath) infinite alternate;
 }
+.blob.c {
+  width: 360px;
+  height: 360px;
+  left: -60px;
+  bottom: -120px;
+  background: radial-gradient(circle at 50% 50%, var(--blob-c), transparent 70%);
+  animation: drift-c 36s var(--ease-breath) infinite alternate;
+}
+@keyframes drift-a {
+  to {
+    transform: translate(70px, 90px) scale(1.15);
+  }
+}
+@keyframes drift-b {
+  to {
+    transform: translate(-80px, -60px) scale(0.9);
+  }
+}
+@keyframes drift-c {
+  to {
+    transform: translate(90px, -70px) scale(1.12);
+  }
+}
+.grain {
+  position: absolute;
+  inset: 0;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .25 0 0 0 0 .2 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+[data-theme='evening'] .grain {
+  mix-blend-mode: screen;
+}
+
+/* ── routes / screens ── */
+.viewport {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  overflow: clip;
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  will-change: transform, opacity;
+}
+.screen-scroll {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--safe-top) + 12px) 20px calc(var(--tabbar-h) + var(--safe-bottom) + 28px);
+}
