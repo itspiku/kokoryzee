@@ -20,3 +20,5 @@ On a desktop the app appears inside a phone frame, with a side panel to switch b
 
 Tip: open the page in **two windows** — one as Alex, one as Dr. Marsh. Messages, support requests, care-plan changes and consent changes sync live between them (via `localStorage`).
 
+## What's inside
+
