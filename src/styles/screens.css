@@ -1,0 +1,60 @@
+/* ── shared screen bits ── */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.5) !important;
+  color: inherit !important;
+  backdrop-filter: blur(10px);
+  height: 30px !important;
+  padding: 0 13px !important;
+  font-size: 13px !important;
+}
+[data-light='1'] .glass-pill,
+.light .glass-pill {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+.ico-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+  flex: none;
+}
+.ico-dot.lg {
+  width: 50px;
+  height: 50px;
+  border-radius: 17px;
+}
+.suggest-ico {
+  width: 56px;
+  height: 56px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--glass-soft);
+  color: var(--primary);
+  box-shadow: 0 6px 16px -8px rgba(36, 64, 47, 0.4);
+}
+[data-theme='evening'] .suggest-ico {
+  background: rgba(255, 255, 255, 0.1);
+}
+.weather-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-top: 14px;
+}
+.weather {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  text-align: center;
+  line-height: 1.15;
+}
