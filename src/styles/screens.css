@@ -1101,3 +1101,63 @@
   color: #20332b;
   transition: background 0.3s, color 0.3s, transform 0.4s var(--spring);
 }
+.save-btn.on {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.1);
+}
+.save-btn.on svg {
+  fill: currentColor;
+}
+.ice-q {
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  border-radius: 16px;
+  background: var(--primary-soft);
+  font-size: 16px;
+  font-style: italic;
+}
+.o-sway {
+  animation: tree-sway-2 5s ease-in-out infinite alternate;
+}
+@keyframes tree-sway-2 {
+  from { transform: rotate(-3deg); }
+  to { transform: rotate(3deg); }
+}
+.o-steam {
+  animation: steam 3s ease-in-out infinite;
+}
+@keyframes steam {
+  0% { opacity: 0; transform: translateY(8px); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-12px); }
+}
+
+/* ── video ── */
+.vc {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+.vc-wait {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(var(--safe-top) + 60px) 24px calc(var(--safe-bottom) + 26px);
+}
+.vc-orb {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  margin-top: 20px;
+}
+.vc-orb span {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--primary-2);
+  animation: halo 4s var(--ease-soft) infinite;
+  opacity: 0;
+}
