@@ -343,3 +343,59 @@
   display: grid;
   place-items: center;
 }
+.orb-preview .breath-orb {
+  position: relative;
+  left: 0;
+  top: 0;
+}
+.breath-orb .ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(190, 240, 225, 0.7);
+  background: radial-gradient(circle, rgba(150, 220, 205, 0.12), transparent 70%);
+}
+.breath-orb .petals {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.breath-orb .petals i {
+  position: absolute;
+  width: 54px;
+  height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 80%, rgba(180, 235, 220, 0.34), rgba(180, 235, 220, 0.03) 70%);
+  filter: blur(1px);
+  margin-top: -46px;
+  margin-left: -27px;
+  top: 50%;
+  left: 50%;
+}
+.breath-orb .core {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e8fff6, #9fe3cf 45%, #4fa797 100%);
+  box-shadow: 0 0 60px 6px rgba(150, 230, 210, 0.45), inset 0 -10px 24px rgba(20, 90, 80, 0.4);
+}
+.breath-orb .core-glow {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(190, 255, 235, 0.55), transparent 65%);
+}
+.breath-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #0e2a26;
+  pointer-events: none;
+  mix-blend-mode: normal;
+}
