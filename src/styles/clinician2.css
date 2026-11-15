@@ -55,3 +55,44 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
+.stack-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--line);
+}
+.stack-bar i {
+  display: block;
+  height: 100%;
+}
+.unread-dot {
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: 2px solid var(--card-solid);
+}
+.mon-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+}
+.matrix { table-layout: fixed; }
+.matrix th { font-size: 9.5px; letter-spacing: 0.03em; }
+.matrix td:first-child, .matrix th:first-child { width: 30%; }
+.matrix td { font-size: 12.5px; padding: 6px 2px; }
+@media print {
+  .tabbar, .topbar, .tabs-scroll, .miniplayer, .statusbar, .stage-side { display: none !important; }
+  .stage, .device, .device-screen, .viewport, .screen, .screen-scroll { position: static !important; overflow: visible !important; height: auto !important; transform: none !important; }
+  body { overflow: visible; background: #fff; }
+}
