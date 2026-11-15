@@ -48,3 +48,11 @@ Tip: open the page in **two windows** — one as Alex, one as Dr. Marsh. Message
 | **Messages** | Inbox, threads, templates, video visit with pre-visit brief. |
 | **Trust** | Consent status per patient, role-based access matrix, hash-chained audit log, model monitoring, human-escalation procedure, data rights. |
 
+## How the intelligence works (honest version)
+
+* **Personal baseline** — each signal is compared with the person's own recent median, scaled by that person's own day-to-day noise (estimated from successive differences, so slow trends don't inflate it). No population thresholds. See `src/engine/baseline.js`.
+* **Alerts** need agreement: ≥3 core signals shifting the same way, a composite threshold and a confidence floor. Confidence blends data coverage, baseline completeness and cross-signal agreement.
+* **Suggestions** (`src/engine/insights.js → suggest`) score context (time of day, recent shifts, mood), the person's own “did this help?” history, the clinician-approved care plan, and recent declines.
+* **Twin** (`src/engine/twin.js`) maps each person's signals to *relative, proxy* region estimates (0–100 % of their own range). These are **not measurements of brain activity**; the brain shown is a generic template, not the patient's scan.
+* All people, signals, places and the brain are **synthetic**.
+
