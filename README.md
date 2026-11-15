@@ -38,3 +38,13 @@ Tip: open the page in **two windows** — one as Alex, one as Dr. Marsh. Message
 | **Privacy** | Granular consent (wearable, phone, brain imaging, circle, research), export and delete, and a visible log of **who looked at your data**. |
 | **Tiny games** | Optional reaction (“Leaf bloom”) and memory (“Echo garden”) games — never scored. |
 
+### Clinician app (one doctor for now)
+| Screen | What it does |
+| --- | --- |
+| **Overview** | Caseload prioritised by reasons, change-from-baseline sparklines, today's schedule, good news. |
+| **Alerts** | Every alert has a **reason, contributing signals, confidence, rule, model version, responsible clinician and audit trail**; acknowledge, action, message, bring forward, or dismiss with a required reason. |
+| **Patient** | One-page **pre-visit brief** (what changed / what was tried / what helped), scrubbable multi-lane **timeline**, **care plan** (clinician-approved interventions that directly control what the patient app may suggest), and per-intervention response history. |
+| **Brain twin** | A procedural 3D cortex (three.js) with proxy region-level estimates, activity / connectivity / regions layers, a TMS target marker, time scrubbing, a damped-trend “if patterns continue” projection with uncertainty, signal–mood associations, data provenance and clinician notes. Clearly labelled **experimental decision-support**. |
+| **Messages** | Inbox, threads, templates, video visit with pre-visit brief. |
+| **Trust** | Consent status per patient, role-based access matrix, hash-chained audit log, model monitoring, human-escalation procedure, data rights. |
+
