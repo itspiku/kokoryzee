@@ -230,3 +230,58 @@
   opacity: 0.55;
   margin-left: 1px;
 }
+.region-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0 5px;
+  overflow: hidden;
+}
+.region-bar i {
+  display: block;
+  height: 100%;
+  background: var(--c);
+  border-radius: 2px;
+}
+.twin-card {
+  margin: 10px 16px 0;
+  padding: 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.tms-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: rgba(240, 179, 90, 0.14);
+  color: #f2d49b;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.twin-section {
+  margin: 18px 16px 0;
+  padding: 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.assoc-bar {
+  position: relative;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.assoc-bar::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
