@@ -129,3 +129,67 @@ export function Avatar({ name = '?', size = 44, hue = '#7aa774', src, ring, styl
   );
 }
 
+// ── entrance helpers ──
+export function Rise({ i = 0, y = 18, children, className, style, delay = 0, as = 'div', ...rest }) {
+  const Comp = motion[as];
+  return (
+    <Comp
+      className={className}
+      style={style}
+      initial={{ opacity: 0, y }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 120, damping: 20, delay: 0.06 + i * 0.07 + delay }}
+      {...rest}
+    >
+      {children}
+    </Comp>
+  );
+}
+export function InView({ children, className, style, y = 22, delay = 0, ...rest }) {
+  return (
+    <motion.div
+      className={className}
+      style={style}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '0px 0px -40px 0px' }}
+      transition={{ type: 'spring', stiffness: 110, damping: 20, delay }}
+      {...rest}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function CountUp({ value, format = (v) => Math.round(v).toLocaleString(), duration = 1.2 }) {
+  const [t, setT] = useState(0);
+  useEffect(() => {
+    const c = animate(0, value, { duration, ease: [0.22, 0.8, 0.28, 1], onUpdate: setT });
+    return () => c.stop();
+  }, [value, duration]);
+  return <>{format(t)}</>;
+}
+
+// ── top bar ──
+export function TopBar({ title, sub, onBack, backTo, right, light, transparent }) {
+  return (
+    <div className="topbar" style={light ? { color: '#fff' } : undefined}>
+      {(onBack || backTo) && (
+        <button
+          className="icon-btn"
+          aria-label="Back"
+          onClick={() => (onBack ? onBack() : back(backTo))}
+          style={light ? { background: 'rgba(255,255,255,.16)', borderColor: 'rgba(255,255,255,.2)', color: '#fff', boxShadow: 'none' } : undefined}
+        >
+          <Icon name="ChevronLeft" size={22} />
+        </button>
+      )}
+      <div className="title">
+        {sub && <div className="t-cap" style={light ? { color: 'rgba(255,255,255,.7)' } : undefined}>{sub}</div>}
+        {title && <h1 className="h2" style={{ marginTop: sub ? 2 : 0 }}>{title}</h1>}
+      </div>
+      {right}
+    </div>
+  );
+}
+
