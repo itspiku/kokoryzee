@@ -61,3 +61,74 @@ export function analyseSignal(series, key, end = series.length - 1, opts = {}) {
   };
 }
 
+export function analysePatient(series, end = series.length - 1, opts = {}) {
+  const o = { ...DEFAULTS, ...opts };
+  const signals = {};
+  for (const k of Object.keys(SIGNAL_META)) {
+    const a = analyseSignal(series, k, end, o);
+    if (a) signals[k] = a;
+  }
+  const core = CORE_KEYS.map((k) => signals[k]).filter(Boolean);
+  const composite = core.length ? mean(core.map((s) => clamp(s.badness, -3, 3))) : 0;
+  const shifted = core.filter((s) => s.badness >= 0.9);
+  const improved = core.filter((s) => s.badness <= -0.9);
+  const recentWindow = series.slice(Math.max(0, end - o.recent + 1), end + 1);
+  const wearDays = recentWindow.filter((r) => r.wear).length;
+  const coverage = recentWindow.length ? wearDays / recentWindow.length : 0;
+  const baseCoverage = clamp(core.length ? mean(core.map((s) => s.nBase / o.baseWin)) : 0, 0, 1);
+  const agreement = core.length ? Math.max(shifted.length, improved.length) / core.length : 0;
+  const confidence = clamp(0.2 + 0.35 * coverage + 0.2 * baseCoverage + 0.25 * agreement, 0, 0.93);
+
+  // trailing missing days (device not synced)
+  let trailingGap = 0;
+  for (let i = end; i >= 0 && !series[i].wear; i--) trailingGap++;
+
+  let status = 'steady';
+  if (series.length < 14 || baseCoverage < 0.55) status = 'forming';
+  else if (trailingGap >= 3) status = 'gap';
+  else if (shifted.length >= 3 && composite >= 0.85 && confidence >= 0.55) status = 'review';
+  else if (shifted.length >= 2 && composite >= 0.55) status = 'shift';
+  else if (improved.length >= 3 && composite <= -0.6) status = 'better';
+
+  return {
+    end,
+    signals,
+    composite,
+    shifted: shifted.sort((a, b) => b.badness - a.badness),
+    improved: improved.sort((a, b) => a.badness - b.badness),
+    coverage,
+    wearDays,
+    recentDays: recentWindow.length,
+    baseCoverage,
+    confidence,
+    status,
+    trailingGap,
+    model: MODEL_VERSION,
+  };
+}
+
+export function confidenceLabel(c) {
+  if (c >= 0.8) return 'High';
+  if (c >= 0.6) return 'Moderate';
+  return 'Low';
+}
+
+/** Rolling composite "change from personal baseline" per day (positive = better than baseline). */
+export function driftSeries(series, opts = {}) {
+  const o = { recent: 3, baseWin: 14, ...opts };
+  const out = [];
+  for (let i = 0; i < series.length; i++) {
+    if (i < o.recent + 8) {
+      out.push(NaN);
+      continue;
+    }
+    const vals = [];
+    for (const k of CORE_KEYS) {
+      const a = analyseSignal(series, k, i, o);
+      if (a) vals.push(clamp(a.badness, -3, 3));
+    }
+    out.push(vals.length >= 4 ? -mean(vals) : NaN);
+  }
+  return out;
+}
+
