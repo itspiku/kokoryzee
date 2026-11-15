@@ -82,3 +82,162 @@ export function OutingArt({ art, grad, h = 132 }) {
   );
 }
 
+const ENERGY = [
+  { v: 1, label: 'A little', icon: 'BatteryFull' },
+  { v: 2, label: 'Some', icon: 'BatteryFull' },
+  { v: 3, label: 'Plenty', icon: 'BatteryFull' },
+];
+
+function Battery({ n }) {
+  return <span className="battery">{[1, 2, 3].map((i) => <i key={i} className={i <= n ? 'on' : ''} />)}</span>;
+}
+
+export default function GoingOut() {
+  const { analysis } = usePatientData('alex');
+  const outings = useStore((s) => s.outings);
+  const circle = useStore((s) => s.circle);
+  const approved = useStore((s) => s.carePlans.alex.approved);
+  const suggested = analysis.status === 'review' || analysis.status === 'shift' ? 1 : 2;
+  const [energy, setEnergy] = useState(suggested);
+  const [cat, setCat] = useState('All');
+  const [invite, setInvite] = useState(null);
+  const [felt, setFelt] = useState(null);
+  const [open, setOpen] = useState(null);
+  const pod = partOfDay();
+
+  const list = OUTINGS.filter((o) => o.energy <= energy && (cat === 'All' || o.cat === cat));
+  const done = outings.done.map((d) => ({ ...d, o: OUTINGS.find((x) => x.id === d.id) })).filter((d) => d.o);
+
+  const goWith = (p) => {
+    actions.sendMessage(`circle:${p.id}`, 'alex', `Would you like to come to “${invite.title}” (${invite.when})? No pressure.`);
+    haptic([16, 30, 16]);
+    toast(`Invited ${p.name}`, { icon: 'Send' });
+    simulateReply(p, [3000, 6000]);
+    setInvite(null);
+  };
+  const logFelt = (v) => {
+    actions.doneOuting(felt.id, v);
+    actions.addFeedback('outing:walk', 'A short walk outside', v === 'fed' ? 'yes' : v === 'ok' ? 'some' : 'no');
+    engine.chime(79, 0.05);
+    toast(v === 'drained' ? 'Thanks. I’ll go gentler next time.' : 'Lovely — noted what fed you.', { icon: 'Heart' });
+    setFelt(null);
+  };
+
+  if (approved.outings === false) {
+    return <Screen tabs={false}><TopBar backTo="/p/home" title="Going out" /><Card flat className="center t-soft">Outings are paused in your care plan for now.</Card></Screen>;
+  }
+
+  return (
+    <Screen tabs={false} bg="linear-gradient(180deg, color-mix(in srgb, var(--sage-200) 70%, var(--bg)), var(--bg) 380px)">
+      <TopBar backTo="/p/home" sub={greeting(new Date(), 'Alex')} title="Going out" />
+      <p className="t-body t-soft" style={{ maxWidth: 300 }}>Gentle ideas — no targets, no pressure. Staying in is also a good choice.</p>
+
+      <Rise i={1}>
+        <Card className="mt-16">
+          <div className="row-flex between"><div className="bold">How much energy today?</div><Pill icon="Sparkles">Picked from your week</Pill></div>
+          <div className="energy-row">
+            {ENERGY.map((e) => (
+              <button key={e.v} className={`energy ${energy === e.v ? 'on' : ''}`} onClick={() => { haptic(8); setEnergy(e.v); }}>
+                {energy === e.v && <motion.span layoutId="energy-pill" className="energy-pill" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />}
+                <Battery n={e.v} />
+                <span>{e.label}</span>
+              </button>
+            ))}
+          </div>
+        </Card>
+      </Rise>
+
+      <SectionTitle sub="The smallest steps still count">Tiny steps</SectionTitle>
+      <div className="scroll-x">
+        {SMALL_STEPS.map((s) => (
+          <Card key={s.id} tight onClick={() => { actions.doneOuting(s.id, 'ok'); actions.addFeedback('outing:walk', 'A short walk outside', 'some'); engine.chime(76, 0.04); toast('That counts. Really.', { icon: 'Heart' }); }} style={{ width: 150 }}>
+            <div className="ico-dot"><Icon name={s.icon} size={19} /></div>
+            <div className="t-sm bold mt-8" style={{ lineHeight: 1.3 }}>{s.text}</div>
+            <div className="t-xs t-faint mt-4">Tap when done</div>
+          </Card>
+        ))}
+      </div>
+
+      <div className="chips-scroll mt-8">
+        {OUTING_CATS.map((c) => <button key={c} className={`chip ${cat === c ? 'on' : ''}`} onClick={() => { haptic(6); setCat(c); }}>{c}</button>)}
+      </div>
+
+      <div className="stack gap-14" style={{ gap: 16, marginTop: 6 }}>
+        <AnimatePresence initial={false} mode="popLayout">
+          {list.map((o, i) => {
+            const saved = outings.saved.includes(o.id);
+            return (
+              <motion.div key={o.id} layout initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }} transition={{ type: 'spring', stiffness: 160, damping: 20, delay: i * 0.04 }}>
+                <Card className="outing" style={{ padding: 0, overflow: 'hidden' }}>
+                  <div className="outing-art"><OutingArt art={o.art} grad={o.grad} />
+                    <div className="outing-date"><b>{o.when.split(' · ')[0]}</b><span>{o.when.split(' · ')[1] || ''}</span></div>
+                    <button className={`save-btn ${saved ? 'on' : ''}`} aria-label={saved ? 'Unsave' : 'Save for later'} onClick={() => { haptic(10); actions.saveOuting(o.id); }}><Icon name="Bookmark" size={19} /></button>
+                  </div>
+                  <div style={{ padding: '14px 16px 16px' }}>
+                    <div className="row-flex between"><div className="h3">{o.title}</div><Battery n={o.energy} /></div>
+                    <div className="t-sm t-soft mt-4"><Icon name="MapPin" size={14} style={{ display: 'inline', verticalAlign: '-2px' }} /> {o.place} · {o.dist}</div>
+                    <div className="t-xs t-faint mt-4">{o.vibe}</div>
+                    <div className="row-flex gap-8 mt-12 wrap">
+                      <Btn kind="primary" size="sm" icon="HeartHandshake" onClick={() => setInvite(o)}>Go with someone</Btn>
+                      <Btn kind="soft" size="sm" icon="Check" onClick={() => setFelt(o)}>I went</Btn>
+                      <button className="t-xs bold" style={{ color: 'var(--primary)', padding: '0 6px' }} onClick={() => setOpen(open === o.id ? null : o.id)}>Ice-breakers</button>
+                    </div>
+                    <AnimatePresence initial={false}>
+                      {open === o.id && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+                          <div className="ice mt-12">
+                            <div className="t-cap mb-8">For when you arrive</div>
+                            {o.ice.map((q) => <div key={q} className="ice-q serif">{q}</div>)}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+        {list.length === 0 && <Card flat className="center t-soft">Nothing at this energy level in that category — tiny steps above still count.</Card>}
+      </div>
+
+      {done.length > 0 && (
+        <>
+          <SectionTitle sub="What you’ve told us about how things felt">Things that fed you</SectionTitle>
+          <div className="stack gap-8">
+            {done.slice(0, 4).map((d, i) => (
+              <Card key={i} tight className="row-flex gap-12">
+                <div className="ico-dot"><Icon name={d.felt === 'fed' ? 'Sprout' : d.felt === 'drained' ? 'Cloud' : 'Sun'} size={18} /></div>
+                <div className="grow"><div className="bold t-sm">{d.o.title}</div><div className="t-xs t-faint">{d.felt === 'fed' ? 'Fed me' : d.felt === 'drained' ? 'Took energy' : 'Fine'}</div></div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+
+      <Sheet open={!!invite} onClose={() => setInvite(null)} title="Go with someone">
+        {invite && <>
+          <p className="t-sm t-soft mb-12">Invite someone from your circle to “{invite.title}”. It’s just a message — no pressure either way.</p>
+          <div className="stack gap-8">
+            {circle.map((p) => (
+              <Card key={p.id} tight onClick={() => goWith(p)} className="row-flex gap-12">
+                <div className="avatar" style={{ width: 44, height: 44, background: p.hue, fontSize: 16 }}>{p.name[0]}</div>
+                <div className="grow"><div className="bold t-sm">{p.name}</div><div className="t-xs t-faint">{p.rel}</div></div>
+                <Icon name="Send" size={17} style={{ color: 'var(--primary)' }} />
+              </Card>
+            ))}
+          </div>
+        </>}
+      </Sheet>
+
+      <Sheet open={!!felt} onClose={() => setFelt(null)} title="How did that feel?">
+        <p className="t-sm t-soft mb-12">Helps Kokoryze learn which kinds of outings are restorative for you.</p>
+        <div className="stack gap-8">
+          <Btn kind="primary" block icon="Sprout" onClick={() => logFelt('fed')}>It fed me</Btn>
+          <Btn kind="soft" block icon="Sun" onClick={() => logFelt('ok')}>It was fine</Btn>
+          <Btn kind="ghost" block icon="Cloud" onClick={() => logFelt('drained')}>It took energy</Btn>
+        </div>
+      </Sheet>
+    </Screen>
+  );
+}
