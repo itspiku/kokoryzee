@@ -219,3 +219,72 @@ export const SEED_CIRCLE = [
   { id: 'priya', name: 'Priya', full: 'Priya Morgan', rel: 'Sister', hue: '#8878c8', note: 'Night owl — replies late', perms: { okay: true, mood: true, rhythm: false } },
 ];
 
+// ── Going out ──────────────────────────────────────────────
+export const OUTING_CATS = ['All', 'Nature', 'Café', 'Creative', 'Movement', 'Quiet', 'Together'];
+export const OUTINGS = [
+  { id: 'o1', title: 'Riverside slow walk', place: 'Millstream Path', when: 'Today · 4:30 PM', dist: '12 min away', cat: 'Nature', art: 'walk', energy: 1, vibe: 'Quiet · 6 people', grad: ['#cfe6c0', '#a8cfae'], ice: ['“Do you come here often, or is this a new route?”', '“What’s your favourite season for walking?”'] },
+  { id: 'o2', title: 'Quiet-hour café', place: 'Little Fern Café', when: 'Today · 3:00 PM', dist: '8 min away', cat: 'Café', art: 'cafe', energy: 1, vibe: 'Soft music · seats by the window', grad: ['#fadcc0', '#f3c3a0'], ice: ['“That looks good — what did you order?”', '“Have you tried their cinnamon bun?”'] },
+  { id: 'o3', title: 'Community garden morning', place: 'Elm Street Garden', when: 'Sat · 9:00 AM', dist: '15 min away', cat: 'Together', art: 'garden', energy: 2, vibe: 'Friendly · 10 people · no talking required', grad: ['#d9e8b8', '#b5d6a0'], ice: ['“What are you planting?”', '“Is there a job that needs an extra pair of hands?”'] },
+  { id: 'o4', title: 'Beginner pottery', place: 'Kiln & Co. Studio', when: 'Wed · 6:00 PM', dist: '20 min away', cat: 'Creative', art: 'pottery', energy: 2, vibe: 'Small group · 8 people', grad: ['#ddd5f3', '#c6bbea'], ice: ['“Is this your first time with clay?”', '“Mine looks like a potato — yours is great.”'] },
+  { id: 'o5', title: 'Gentle stretch & tea', place: 'Willow Studio', when: 'Thu · 8:00 AM', dist: '10 min away', cat: 'Movement', art: 'stretch', energy: 1, vibe: 'Slow · all levels', grad: ['#c9e3ea', '#a6cfdb'], ice: ['“Mind if I borrow a block?”', '“Which tea are you having?”'] },
+  { id: 'o6', title: 'Library reading hour', place: 'Central Library, 2nd floor', when: 'Daily · open', dist: '14 min away', cat: 'Quiet', art: 'book', energy: 1, vibe: 'Silent · armchairs', grad: ['#f2dc8e', '#ecc872'], ice: ['“Any recommendation for a gentle read?”'] },
+  { id: 'o7', title: 'Sunset beginner hike', place: 'Pine Ridge trail', when: 'Sat · 5:00 PM', dist: '25 min away', cat: 'Nature', art: 'hike', energy: 3, vibe: 'Guided · 12 people · easy pace', grad: ['#f6c49c', '#e69b78'], ice: ['“Is this your first time on this trail?”', '“Isn’t that light incredible?”'] },
+  { id: 'o8', title: 'Listen-only open mic', place: 'The Lantern Room', when: 'Fri · 7:30 PM', dist: '18 min away', cat: 'Quiet', art: 'music', energy: 2, vibe: 'Cosy · you only have to listen', grad: ['#dcc9ea', '#b9a3dc'], ice: ['“Who’s your favourite act so far?”'] },
+];
+export const SMALL_STEPS = [
+  { id: 's1', text: 'Step outside for five minutes', icon: 'DoorOpen' },
+  { id: 's2', text: 'Walk to the end of the street and back', icon: 'Footprints' },
+  { id: 's3', text: 'Drink tea by a window', icon: 'Coffee' },
+  { id: 's4', text: 'Sit in a patch of sunlight', icon: 'Sun' },
+  { id: 's5', text: 'Water a plant', icon: 'Sprout' },
+];
+
+// ── Care plan catalogue ────────────────────────────────────
+export const INTERVENTIONS = [
+  { id: 'breathing', label: 'Guided breathing', blurb: 'Short paced-breathing sessions', icon: 'Wind', tint: 'sky' },
+  { id: 'sounds', label: 'Calming sounds & music', blurb: 'Personalised soundscapes', icon: 'Music2', tint: 'lav' },
+  { id: 'journal', label: 'Private journal', blurb: 'Writing, voice notes & guided reflection', icon: 'PenLine', tint: 'sage' },
+  { id: 'outings', label: 'Gentle outings', blurb: 'Low-pressure things to do outside', icon: 'Footprints', tint: 'apricot' },
+  { id: 'circle', label: 'Circle check-ins', blurb: 'Reaching trusted people', icon: 'Users', tint: 'butter' },
+  { id: 'games', label: 'Memory & reaction games', blurb: 'Optional, short, never scored', icon: 'Brain', tint: 'sky' },
+  { id: 'letter', label: 'Letter to future me', blurb: 'A message from a better day', icon: 'Mail', tint: 'apricot' },
+  { id: 'sleep', label: 'Sleep wind-down', blurb: 'Evening routine & sleep sounds', icon: 'Moon', tint: 'lav' },
+];
+
+// ── Messages ───────────────────────────────────────────────
+export const COMMON_QUESTIONS = [
+  'Can I move my appointment?',
+  'I have a question about my sleep',
+  'How are my sessions going?',
+  'I’d like to talk sooner',
+];
+export const CLINICIAN_TEMPLATES = [
+  'Thanks for letting me know. I looked at your recent patterns and would like to check in — does a short call tomorrow work?',
+  'That sounds like a hard stretch. You did the right thing reaching out. Let’s talk through it at your next session.',
+  'Good to hear. Keep doing what’s helping — we’ll review at your next visit.',
+  'I’ve adjusted your plan. Take a look when you’re ready; nothing is urgent.',
+];
+
+// ── Patients (clinician caseload) ──────────────────────────
+export const PATIENTS = [
+  { id: 'alex', name: 'Alex Morgan', age: 34, seed: 1, archetype: 'dip', phase: 'TMS · week 5 of 6', focus: 'Left DLPFC · 10 Hz', hue: '#e68d57', live: true, phq: [19, 16, 13, 11, 9], tmsStart: -33, next: { in: 2, hour: 10.5, kind: 'Video review' } },
+  { id: 'maria', name: 'Maria Lopez', age: 47, seed: 2, archetype: 'steadyUp', phase: 'Maintenance · month 3', focus: 'Post-TMS follow-up', hue: '#7aa774', phq: [18, 14, 10, 7, 5], tmsStart: -80, next: { in: 9, hour: 14, kind: 'Clinic visit' } },
+  { id: 'daniel', name: 'Daniel Okafor', age: 29, seed: 3, archetype: 'lateShift', phase: 'TMS · week 4 of 6', focus: 'Left DLPFC · iTBS', hue: '#6aa7bd', phq: [21, 18, 14, 13, 12], tmsStart: -26, next: { in: 1, hour: 9, kind: 'TMS session' } },
+  { id: 'priya', name: 'Priya Nair', age: 52, seed: 4, archetype: 'newStart', phase: 'Starting · day 12', focus: 'Baseline forming', hue: '#8878c8', phq: [17], tmsStart: -2, next: { in: 4, hour: 11, kind: 'Intake review' } },
+  { id: 'tom', name: 'Tom Whitfield', age: 41, seed: 5, archetype: 'steadyGap', phase: 'Maintenance · month 5', focus: 'Stable', hue: '#c9a24b', phq: [15, 11, 8, 6, 6], tmsStart: -140, next: { in: 12, hour: 16, kind: 'Check-in call' } },
+];
+export const patientById = (id) => PATIENTS.find((p) => p.id === id);
+
+export const BRAIN_REGIONS = [
+  { id: 'dlpfc', name: 'Dorsolateral prefrontal cortex', short: 'DLPFC', tag: 'TMS target', pos: [-0.5, 0.36, 0.7], r: 0.42, deep: false, color: '#f0b35a', blurb: 'Executive control and mood regulation. The stimulation site for this course of TMS.', drivers: ['sleepDur', 'activeMin', 'mood'] },
+  { id: 'acc', name: 'Anterior cingulate', short: 'ACC', tag: 'Mood & motivation', pos: [0.0, 0.18, 0.52], r: 0.4, deep: true, color: '#8fd3c4', blurb: 'Links emotion, motivation and attention.', drivers: ['mood', 'social', 'sleepDur'] },
+  { id: 'amyg', name: 'Amygdala', short: 'AMY', tag: 'Stress reactivity (proxy)', pos: [-0.3, -0.2, 0.26], r: 0.3, deep: true, color: '#e8907a', blurb: 'Threat and stress response. Proxy built from HRV, sleep disruption and resting heart rate.', drivers: ['hrv', 'sleepEff', 'restHR'] },
+  { id: 'hipp', name: 'Hippocampus', short: 'HIP', tag: 'Memory & sleep', pos: [0.32, -0.22, -0.05], r: 0.32, deep: true, color: '#a9a0e8', blurb: 'Memory formation and sleep-dependent consolidation.', drivers: ['sleepEff', 'sleepDur', 'reaction'] },
+  { id: 'dmn', name: 'Default-mode network', short: 'DMN', tag: 'Rumination (proxy)', pos: [0.0, 0.56, -0.46], r: 0.5, deep: false, color: '#78b6e8', blurb: 'Self-referential thinking. Proxy built from night-time phone use, inactivity and sleep timing.', drivers: ['nightPhone', 'steps', 'sleepMid'] },
+  { id: 'str', name: 'Reward circuit', short: 'STR', tag: 'Drive & pleasure (proxy)', pos: [0.16, -0.02, 0.32], r: 0.3, deep: true, color: '#f2d576', blurb: 'Motivation and reward. Proxy built from movement and social contact.', drivers: ['steps', 'social', 'activeMin'] },
+];
+
+export const SAFETY_LINES = [
+  { id: '988', name: '988 Suicide & Crisis Lifeline', sub: 'Call or text 988 · United States · 24/7', href: 'tel:988' },
+  { id: 'emerg', name: 'Emergency services', sub: 'If you’re in immediate danger, call your local number (911 in the US)', href: 'tel:911' },
+];
