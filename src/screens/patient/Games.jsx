@@ -141,3 +141,86 @@ export function GameReact() {
   );
 }
 
+// ───────────────────────────── Echo garden (memory)
+const PETALS = [
+  { c: '#f4a0bd', n: 72, x: 50, y: 18 },
+  { c: '#9fc3f0', n: 76, x: 82, y: 50 },
+  { c: '#f0d06a', n: 79, x: 50, y: 82 },
+  { c: '#9ccf86', n: 84, x: 18, y: 50 },
+];
+export function GameEcho() {
+  const [phase, setPhase] = useState('intro'); // intro | show | input | fail | done
+  const [seq, setSeq] = useState([]);
+  const [idx, setIdx] = useState(0);
+  const [lit, setLit] = useState(-1);
+  const [best, setBest] = useState(0);
+  const tms = useRef([]);
+  useEffect(() => () => tms.current.forEach(clearTimeout), []);
+
+  const flash = (i, ms = 420) => {
+    setLit(i);
+    engine.chime(PETALS[i].n, 0.05);
+    haptic(8);
+    tms.current.push(setTimeout(() => setLit(-1), ms));
+  };
+  const play = (s) => {
+    setPhase('show');
+    setIdx(0);
+    s.forEach((p, k) => tms.current.push(setTimeout(() => flash(p), 700 + k * 760)));
+    tms.current.push(setTimeout(() => setPhase('input'), 700 + s.length * 760));
+  };
+  const start = () => {
+    const s = Array.from({ length: 3 }, () => Math.floor(Math.random() * 4));
+    setSeq(s);
+    setBest(0);
+    play(s);
+  };
+  const press = (i) => {
+    if (phase !== 'input') return;
+    flash(i, 260);
+    if (seq[idx] === i) {
+      if (idx + 1 === seq.length) {
+        setBest(seq.length);
+        if (seq.length >= 8) return finish(seq.length);
+        const s = [...seq, Math.floor(Math.random() * 4)];
+        setSeq(s);
+        setPhase('show');
+        tms.current.push(setTimeout(() => play(s), 900));
+      } else setIdx(idx + 1);
+    } else {
+      haptic([30, 40]);
+      setPhase('fail');
+      finish(best);
+    }
+  };
+  const finish = (span) => {
+    actions.addCognitive({ game: 'echo', span });
+    setTimeout(() => setPhase((p) => (p === 'fail' ? 'fail' : 'done')), 10);
+  };
+
+  return (
+    <Screen tabs={false} bg="linear-gradient(180deg,#e7e0f6,#efecf7 60%,var(--bg))" theme={undefined} noScroll>
+      <TopBar onBack={() => { tms.current.forEach(clearTimeout); back('/p/games'); }} sub="Echo garden" title={phase === 'input' ? 'Your turn' : phase === 'show' ? 'Watch closely' : 'Echo garden'} />
+      <div className="game-stage">
+        <div className="echo-flower">
+          {PETALS.map((p, i) => (
+            <motion.button key={i} className="echo-petal" style={{ left: `${p.x}%`, top: `${p.y}%`, background: `radial-gradient(circle at 35% 30%, #fff8, ${p.c} 60%)` }} onPointerDown={() => press(i)} animate={lit === i ? { scale: 1.25, boxShadow: `0 0 50px 10px ${p.c}` } : { scale: 1, boxShadow: `0 8px 20px -8px ${p.c}` }} transition={{ type: 'spring', stiffness: 300, damping: 14 }} aria-label={`Petal ${i + 1}`} />
+          ))}
+          <div className="echo-core">{phase === 'intro' || phase === 'fail' || phase === 'done' ? <Koko size={74} mood={phase === 'fail' ? 'caring' : 'happy'} interactive={false} glow={false} /> : <span className="serif" style={{ fontSize: 28 }}>{seq.length}</span>}</div>
+        </div>
+        <div className="center" style={{ minHeight: 120, marginTop: 24 }}>
+          {phase === 'intro' && (<><p className="t-body t-soft" style={{ maxWidth: 270, margin: '0 auto' }}>Petals glow in a pattern. Tap them back in the same order.</p><Btn kind="primary" size="lg" className="mt-16" onClick={start} icon="Play">Start</Btn></>)}
+          {phase === 'show' && <p className="t-body t-soft">Watching… {seq.length} petals</p>}
+          {phase === 'input' && <p className="t-body t-soft">{idx} of {seq.length}</p>}
+          {(phase === 'fail' || phase === 'done') && (
+            <>
+              <h2 className="h2">{phase === 'done' ? 'Wonderful!' : 'That one was tricky.'}</h2>
+              <p className="t-sm t-soft mt-4">You held {best} petals in mind. That’s all that matters.</p>
+              <div className="row-flex gap-8 mt-16" style={{ justifyContent: 'center' }}><Btn kind="primary" onClick={() => back('/p/games')}>Done</Btn><Btn kind="soft" onClick={start}>Again</Btn></div>
+            </>
+          )}
+        </div>
+      </div>
+    </Screen>
+  );
+}
