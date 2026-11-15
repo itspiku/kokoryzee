@@ -92,3 +92,124 @@ export default function Journal() {
   );
 }
 
+// ───────────────────────────────────────── editor
+export function JournalNew({ query }) {
+  const prompt = JOURNAL_PROMPTS.find((p) => p.id === query?.prompt);
+  const [mode, setMode] = useState(query?.mode || (prompt?.id === 'shift' ? 'guided' : 'write'));
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState(REFLECTION_STEPS.map(() => ''));
+  const [saved, setSaved] = useState(false);
+  const rec = useRecorder();
+  const [clip, setClip] = useState(null);
+
+  const save = async () => {
+    haptic(20);
+    let entry;
+    if (mode === 'voice') {
+      if (!clip) return;
+      const id = uid('aud');
+      await putBlob(id, clip.blob);
+      entry = { type: 'voice', title: title || 'Voice note', body: '', audioId: id, duration: clip.duration, prompt: prompt?.id, themes: [] };
+    } else if (mode === 'guided') {
+      const text = REFLECTION_STEPS.map((s, i) => (answers[i] ? `${s.q}\n${answers[i]}` : '')).filter(Boolean).join('\n\n');
+      entry = { type: 'text', title: title || 'A kinder way to say it', body: text, prompt: 'shift', themes: detectThemes(text) };
+    } else {
+      if (!body.trim() && !title.trim()) return toast('Write a few words first — or just close this.', { icon: 'Info' });
+      entry = { type: 'text', title: title || body.trim().split(/\s+/).slice(0, 5).join(' ') + '…', body, prompt: prompt?.id, themes: detectThemes(body + ' ' + title) };
+    }
+    actions.addJournal(entry);
+    actions.addFeedback('journal:write', 'Journaling', 'yes');
+    engine.chime(81, 0.05);
+    setSaved(true);
+    setTimeout(() => back('/p/journal'), 1500);
+  };
+
+  const toggleRec = async () => {
+    haptic(24);
+    if (rec.state === 'recording') {
+      const r = await rec.stop();
+      if (r && r.blob.size > 500) setClip(r);
+    } else {
+      setClip(null);
+      await rec.start();
+    }
+  };
+
+  const canSave = mode === 'voice' ? !!clip : mode === 'guided' ? answers.some(Boolean) : body.trim() || title.trim();
+
+  return (
+    <Screen tabs={false} className="editor">
+      <TopBar onBack={() => back('/p/journal')} sub={fmtDay(Date.now(), { weekday: 'long', month: 'long', day: 'numeric' })} title="New entry" right={<Btn kind="primary" size="sm" onClick={save} disabled={!canSave}>Save</Btn>} />
+      <div className="row-flex" style={{ justifyContent: 'center', margin: '4px 0 14px' }}>
+        <Segmented id="jm" small value={mode} onChange={setMode} options={[{ value: 'write', label: 'Write', icon: 'PenLine' }, { value: 'voice', label: 'Voice', icon: 'Mic' }, { value: 'guided', label: 'Guided', icon: 'Sparkles' }]} />
+      </div>
+
+      <AnimatePresence mode="wait" initial={false}>
+        {mode === 'write' && (
+          <motion.div key="w" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+            <div className="journal-hello" style={{ margin: '0 0 12px' }}>
+              <Koko size={64} mood="listening" interactive={false} />
+              <div className="speech"><div className="t-sm serif" style={{ fontSize: 15.5 }}>{prompt ? prompt.sub + '.' : 'Hey, I’m here. Want to share what’s been on your mind today?'}</div></div>
+            </div>
+            <input className="field" placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} style={{ fontFamily: 'var(--font-display)', fontSize: 20, marginBottom: 10 }} />
+            <textarea className="field lined-paper" autoFocus placeholder={prompt?.seed || 'Add your thoughts…'} value={body} onChange={(e) => setBody(e.target.value)} style={{ minHeight: 280, fontFamily: 'var(--font-display)', fontSize: 18, padding: '8px 18px' }} />
+            <div className="row-flex between mt-8 t-xs t-faint"><span><Icon name="Lock" size={12} style={{ display: 'inline', verticalAlign: '-1px' }} /> Only you can read this</span><span>{body.trim() ? body.trim().split(/\s+/).length : 0} words</span></div>
+          </motion.div>
+        )}
+
+        {mode === 'voice' && (
+          <motion.div key="v" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="center stack" style={{ alignItems: 'center' }}>
+            <h2 className="h2 mt-8">Say it out loud.</h2>
+            <p className="t-sm t-soft mt-4" style={{ maxWidth: 270 }}>Sometimes speaking is easier than writing. Recordings stay on your device.</p>
+            <div style={{ width: '100%', margin: '26px 0 8px', minHeight: 70 }}>
+              {rec.state === 'recording' ? <LiveBars bars={rec.bars} /> : <div className="t-sm t-faint" style={{ height: 70, display: 'grid', placeItems: 'center' }}>{clip ? '' : rec.state === 'unavailable' ? 'Microphone isn’t available here — you can write instead.' : 'Tap to start'}</div>}
+            </div>
+            <div className="t-num serif" style={{ fontSize: 30, height: 40 }}>{rec.state === 'recording' ? fmtClock(rec.seconds) : clip ? fmtClock(clip.duration) : '0:00'}</div>
+            <motion.button className={`rec-btn ${rec.state === 'recording' ? 'on' : ''}`} onClick={toggleRec} whileTap={{ scale: 0.92 }} aria-label={rec.state === 'recording' ? 'Stop recording' : 'Start recording'}>
+              <span className="rec-ring" />
+              <Icon name={rec.state === 'recording' ? 'Square' : 'Mic'} size={30} />
+            </motion.button>
+            <div className="t-xs t-faint mt-12">{rec.state === 'recording' ? 'Tap to finish' : clip ? 'Tap to record again' : ''}</div>
+            {clip && <ClipPreview clip={clip} />}
+            {clip && <input className="field mt-16" placeholder="Give it a name (optional)" value={title} onChange={(e) => setTitle(e.target.value)} />}
+          </motion.div>
+        )}
+
+        {mode === 'guided' && (
+          <motion.div key="g" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <div className="row-flex gap-6" style={{ marginBottom: 14 }}>
+              {REFLECTION_STEPS.map((_, i) => <motion.i key={i} className="step-bar" animate={{ opacity: i <= step ? 1 : 0.25, scaleY: i === step ? 1.4 : 1 }} />)}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={step} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+                <div className="t-cap">Step {step + 1} of {REFLECTION_STEPS.length}</div>
+                <h2 className="h1 mt-8" style={{ fontSize: 26 }}>{REFLECTION_STEPS[step].q}</h2>
+                <textarea className="field mt-16" autoFocus placeholder={REFLECTION_STEPS[step].ph} value={answers[step]} onChange={(e) => setAnswers(answers.map((a, i) => (i === step ? e.target.value : a)))} style={{ fontFamily: 'var(--font-display)', fontSize: 18, minHeight: 150 }} />
+              </motion.div>
+            </AnimatePresence>
+            <div className="row-flex gap-8 mt-16">
+              {step > 0 && <Btn kind="ghost" onClick={() => setStep(step - 1)} icon="ChevronLeft">Back</Btn>}
+              <div className="grow" />
+              {step < REFLECTION_STEPS.length - 1 ? <Btn kind="primary" onClick={() => setStep(step + 1)} iconRight="ArrowRight">{answers[step] ? 'Next' : 'Skip'}</Btn> : <Btn kind="primary" onClick={save} disabled={!canSave} icon="Check">Finish</Btn>}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {saved && (
+          <motion.div className="saved-veil" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 14 }} className="center">
+              <Koko size={140} mood="happy" />
+              <h2 className="h1 mt-12">Kept safe.</h2>
+              <p className="t-sm t-soft mt-4">Thank you for sharing with yourself.</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Screen>
+  );
+}
+
