@@ -361,3 +361,29 @@ export function Slider({ value, onChange, min = 0, max = 1, step = 0.01, color, 
   );
 }
 
+export function SectionTitle({ children, action, onAction, sub }) {
+  return (
+    <div className="row-flex between" style={{ margin: '26px 2px 12px' }}>
+      <div>
+        <h2 className="h3" style={{ fontFamily: 'var(--font-display)', fontVariationSettings: '"SOFT" 100', fontWeight: 560, fontSize: 20 }}>{children}</h2>
+        {sub && <div className="t-xs t-faint">{sub}</div>}
+      </div>
+      {action && (
+        <button onClick={onAction} className="t-sm bold" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 2 }}>
+          {action}
+          <Icon name="ChevronRight" size={16} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function Empty({ icon = 'Leaf', title, body }) {
+  return (
+    <div className="center stack" style={{ alignItems: 'center', padding: '34px 20px', gap: 8 }}>
+      <div className="icon-btn" style={{ width: 58, height: 58, color: 'var(--primary)' }}><Icon name={icon} size={26} /></div>
+      <div className="h3 mt-8">{title}</div>
+      {body && <div className="t-sm t-soft" style={{ maxWidth: 260 }}>{body}</div>}
+    </div>
+  );
+}
