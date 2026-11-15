@@ -189,3 +189,60 @@ export function defaults(now = Date.now()) {
   };
 }
 
+// ── store core ────────────────────────────────────────────
+let state = load();
+const subs = new Set();
+let saveTimer = null;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.v === VERSION) return parsed;
+    }
+  } catch {}
+  return defaults();
+}
+
+function persist() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch {}
+  }, 120);
+}
+function emit() {
+  subs.forEach((f) => f());
+}
+export const getState = () => state;
+export function setState(patch) {
+  const next = typeof patch === 'function' ? patch(state) : { ...state, ...patch };
+  if (next === state) return;
+  state = next;
+  setHapticsEnabled(state.prefs.haptics);
+  if (typeof window !== 'undefined') window.__kzSound = state.prefs.sound;
+  emit();
+  persist();
+}
+setHapticsEnabled(state.prefs.haptics);
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === KEY && e.newValue) {
+      try {
+        const n = JSON.parse(e.newValue);
+        if (n && n.v === VERSION) {
+          state = n;
+          emit();
+        }
+      } catch {}
+    }
+  });
+}
+
+function subscribe(f) {
+  subs.add(f);
+  return () => subs.delete(f);
+}
