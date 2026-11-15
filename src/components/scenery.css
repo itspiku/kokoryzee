@@ -54,3 +54,53 @@
   animation-duration: 52s;
   animation-delay: -20s;
 }
+@keyframes bird-fly {
+  0% { transform: translate(-30px, 96px) scale(0.9); opacity: 0; }
+  8% { opacity: 1; }
+  50% { transform: translate(200px, 74px) scale(1.05); }
+  92% { opacity: 1; }
+  100% { transform: translate(430px, 100px) scale(0.9); opacity: 0; }
+}
+.scenery .tree {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: tree-sway 6s ease-in-out infinite alternate;
+}
+@keyframes tree-sway {
+  from { rotate: -1.2deg; }
+  to { rotate: 1.4deg; }
+}
+.scenery .grass {
+  animation: grass-sway 3.6s ease-in-out infinite alternate;
+}
+@keyframes grass-sway {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(5deg); }
+}
+.scenery .firefly {
+  animation: fly1 9s ease-in-out infinite, glow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px #fff6b0);
+}
+.scenery .firefly.f2 { animation-name: fly2, glow; animation-duration: 11s, 2.6s; }
+.scenery .firefly.f3 { animation-name: fly3, glow; animation-duration: 13s, 3.4s; }
+@keyframes fly1 {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(18px, -16px); }
+  66% { transform: translate(-12px, -26px); }
+}
+@keyframes fly2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-22px, -20px); }
+}
+@keyframes fly3 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(14px, -10px); }
+  75% { transform: translate(-16px, -22px); }
+}
+@keyframes glow {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scenery * { animation: none !important; }
+}
