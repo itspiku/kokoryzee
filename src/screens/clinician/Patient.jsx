@@ -176,3 +176,106 @@ function Brief({ p, d }) {
   );
 }
 
+// ───────────────────────────── Timeline
+function Timeline({ p, d }) {
+  const { series, tms } = d;
+  const alerts = useStore((s) => s.alerts);
+  const n = series.length;
+  const COL = 14;
+  const W = n * COL + 24;
+  const lanes = [
+    { k: 'tms', label: 'TMS', h: 44 },
+    { k: 'sleepDur', label: 'Sleep', h: 76 },
+    { k: 'hrv', label: 'HRV', h: 76 },
+    { k: 'steps', label: 'Steps', h: 76 },
+    { k: 'mood', label: 'Mood', h: 62 },
+    { k: 'alerts', label: 'Alerts', h: 40 },
+  ];
+  const ref = useRef(null);
+  const [cur, setCur] = useState(n - 1);
+  useEffect(() => { if (ref.current) ref.current.scrollLeft = ref.current.scrollWidth; }, []);
+  const x = (i) => 12 + i * COL + COL / 2;
+  const rng = (k) => {
+    const v = series.map((r) => r[k]).filter(isNum);
+    return [Math.min(...v), Math.max(...v)];
+  };
+  const rec = series[cur];
+  const sess = tms.find((s) => s.x === rec.x);
+  const myAlerts = alerts.filter((a) => a.patientId === p.id);
+  const alertIdx = (a) => clamp(n - 1 - Math.round((Date.now() - a.createdAt) / 86400000), 0, n - 1);
+  const onMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    setCur(clamp(Math.round((px - 12 - COL / 2) / COL), 0, n - 1));
+  };
+  let y0 = 0;
+  const laneY = lanes.map((l) => { const y = y0; y0 += l.h; return y; });
+
+  return (
+    <div>
+      <Card className="mb-12">
+        <div className="row-flex between"><div className="serif" style={{ fontSize: 20 }}>{fmtDay(rec.date, { weekday: 'short', month: 'short', day: 'numeric' })}</div>{sess && <Pill icon="Zap">TMS session {sess.n}</Pill>}</div>
+        <div className="readout">
+          {[['sleepDur', 'Sleep'], ['hrv', 'HRV'], ['steps', 'Steps'], ['mood', 'Mood']].map(([k, l]) => (
+            <div key={k}><div className="t-cap">{l}</div><div className="bold t-num">{valueText(k, rec[k])}</div></div>
+          ))}
+        </div>
+        {!rec.wear && <div className="t-xs t-faint mt-8"><Icon name="Watch" size={12} style={{ display: 'inline', verticalAlign: '-1px' }} /> No wearable data this day</div>}
+      </Card>
+      <div className="row-flex" style={{ alignItems: 'stretch' }}>
+        <div style={{ width: 52, flex: 'none' }}>
+          {lanes.map((l) => <div key={l.k} className="lane-label" style={{ height: l.h }}>{l.label}</div>)}
+          <div style={{ height: 22 }} />
+        </div>
+        <div className="timeline-scroll grow" ref={ref} style={{ margin: 0, padding: 0 }}>
+          <svg width={W} height={y0 + 22} onPointerMove={onMove} onPointerDown={onMove} style={{ touchAction: 'pan-x' }}>
+            {lanes.map((l, i) => <rect key={l.k} x="0" y={laneY[i]} width={W} height={l.h} fill={i % 2 ? 'transparent' : 'var(--card-2)'} />)}
+            {series.map((r, i) => (r.x === 0 ? <line key="t" x1={x(i)} x2={x(i)} y1="0" y2={y0} stroke="var(--primary-2)" strokeDasharray="3 4" /> : null))}
+            {/* TMS */}
+            {tms.map((s) => {
+              const i = series.findIndex((r) => r.x === s.x);
+              if (i < 0) return null;
+              return <rect key={s.n} x={x(i) - 4} y={laneY[0] + 14} width="8" height="16" rx="3" fill={s.done ? '#e0a35c' : 'none'} stroke="#e0a35c" strokeWidth="1.5" opacity={s.done ? 0.95 : 0.6} />;
+            })}
+            {/* sleep + hrv lines */}
+            {['sleepDur', 'hrv'].map((k) => {
+              const li = lanes.findIndex((l) => l.k === k);
+              const [lo, hi] = rng(k);
+              const pts = series.map((r, i) => (isNum(r[k]) ? [x(i), laneY[li] + 8 + (1 - (r[k] - lo) / (hi - lo || 1)) * (lanes[li].h - 16)] : null));
+              const runs = []; let c = [];
+              pts.forEach((q) => { if (q) c.push(q); else { if (c.length > 1) runs.push(c); c = []; } });
+              if (c.length > 1) runs.push(c);
+              return runs.map((run, i) => <path key={k + i} d={smoothPath(run, 0.9)} fill="none" stroke={k === 'hrv' ? '#8878c8' : '#4d7f59'} strokeWidth="2.4" strokeLinecap="round" />);
+            })}
+            {/* steps bars */}
+            {(() => {
+              const li = lanes.findIndex((l) => l.k === 'steps');
+              const [, hi] = rng('steps');
+              return series.map((r, i) => isNum(r.steps) ? <rect key={i} x={x(i) - 3.5} y={laneY[li] + lanes[li].h - 6 - (r.steps / hi) * (lanes[li].h - 14)} width="7" height={(r.steps / hi) * (lanes[li].h - 14)} rx="2.5" fill="#e68d57" opacity="0.8" /> : null);
+            })()}
+            {/* mood dots */}
+            {(() => {
+              const li = lanes.findIndex((l) => l.k === 'mood');
+              return series.map((r, i) => isNum(r.mood) ? <circle key={i} cx={x(i)} cy={laneY[li] + 8 + (1 - (r.mood - 1) / 4) * (lanes[li].h - 16)} r="3.6" fill={r.mood >= 4 ? '#7aa774' : r.mood >= 3 ? '#9fb4b0' : '#7fa7c0'} /> : null);
+            })()}
+            {/* alerts */}
+            {myAlerts.map((a) => <g key={a.id} transform={`translate(${x(alertIdx(a))} ${laneY[5] + 20})`}><circle r="8" fill={a.level === 'urgent' ? '#d47468' : '#e0a35c'} opacity="0.2" /><circle r="4.5" fill={a.level === 'urgent' ? '#d47468' : '#e0a35c'} /></g>)}
+            {/* date ticks */}
+            {series.map((r, i) => (r.date.getDay() === 1 ? <text key={i} x={x(i)} y={y0 + 15} fontSize="10" textAnchor="middle" fill="var(--ink-3)" fontWeight="600">{fmtDay(r.date, { month: 'short', day: 'numeric' })}</text> : null))}
+            {/* cursor */}
+            <line x1={x(cur)} x2={x(cur)} y1="0" y2={y0} stroke="var(--ink)" strokeOpacity="0.4" />
+            <circle cx={x(cur)} cy="2" r="4" fill="var(--ink)" />
+          </svg>
+        </div>
+      </div>
+      <div className="row-flex gap-12 wrap t-xs t-faint mt-12" style={{ justifyContent: 'center' }}>
+        <span className="lane-chip"><i className="leg" style={{ background: '#e0a35c' }} /> TMS session</span>
+        <span className="lane-chip"><i className="leg" style={{ background: '#4d7f59' }} /> Sleep</span>
+        <span className="lane-chip"><i className="leg" style={{ background: '#8878c8' }} /> HRV</span>
+        <span className="lane-chip"><i className="leg" style={{ background: '#e68d57' }} /> Steps</span>
+      </div>
+      <p className="t-xs t-faint center mt-8">Drag across the chart to read any day. Scroll sideways for earlier weeks.</p>
+    </div>
+  );
+}
+
