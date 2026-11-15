@@ -66,3 +66,18 @@ Tip: open the page in **two windows** — one as Alex, one as Dr. Marsh. Message
 
 The five tests (zero-effort, worst-day, guilt, human, “so what”) are applied to every feature: e.g. no streaks or scores (guilt), crisis help is one tap on the worst day, and every insight links to a gentle action.
 
+## Tech
+
+Vite + React 18 · Framer Motion · three.js · Web Audio API · lucide icons · bundled Fraunces & Figtree fonts (works offline). State is a tiny external store persisted to `localStorage`; voice notes and photos live in IndexedDB. Everything stays on the device.
+
+```
+src/
+  audio/engine.js        generative soundscapes + breathing tones
+  components/            Koko, Scenery, charts, Chat, VideoCall, SceneArt, BrainView …
+  data/                  content + synthetic signal generator
+  engine/                baseline, insights/suggestions, twin, 3D brain
+  lib/                   store, router, helpers, IndexedDB
+  screens/patient|clinician
+  styles/                tokens (day / evening / clinician), base, screens
+```
+
