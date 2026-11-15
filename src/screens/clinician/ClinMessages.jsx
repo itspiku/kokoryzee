@@ -104,3 +104,29 @@ export function ClinThread({ params }) {
   );
 }
 
+export function ClinVideo({ query }) {
+  const p = patientById(query?.patient) || PATIENTS[0];
+  const d = getPatientData(p.id);
+  const feedback = useStore((s) => s.feedback);
+  const [brief, setBrief] = useState(false);
+  const b = useMemo(() => buildBrief({ patient: p, series: d.series, analysis: d.analysis, stats: responseStats(feedback), plan: null, phq: p.phq }), [p, d, feedback]);
+  return (
+    <Screen tabs={false} noScroll theme="evening" bg="linear-gradient(180deg,#0d1819,#102022 60%,#0c1718)" padTop={false}>
+      <VideoCall
+        other={{ name: p.name, hue: p.hue }}
+        self="You"
+        onEnd={() => back(`/c/messages/${p.id}`)}
+        waitExtra={<button className="btn btn-soft btn-block" onClick={() => setBrief(true)} style={{ marginBottom: 10 }}><Icon name="FileText" size={19} /> Review pre-visit brief</button>}
+        sidebar={<button className="vc-btn" onClick={() => setBrief(true)} aria-label="Pre-visit brief"><Icon name="FileText" size={22} /></button>}
+      />
+      <Sheet open={brief} onClose={() => setBrief(false)} title="Pre-visit brief" dark>
+        <div className="serif" style={{ fontSize: 20, lineHeight: 1.25 }}>{b.headline}</div>
+        <div className="t-cap mt-16 mb-8" style={{ color: 'rgba(255,255,255,.5)' }}>What changed</div>
+        {b.changed.map((c) => <div key={c.text} className="t-sm" style={{ padding: '5px 0', opacity: 0.9 }}>• {c.text}</div>)}
+        <div className="t-cap mt-16 mb-8" style={{ color: 'rgba(255,255,255,.5)' }}>Questions to ask</div>
+        {b.questions.map((q, i) => <div key={q} className="t-sm" style={{ padding: '5px 0', opacity: 0.9 }}>{i + 1}. {q}</div>)}
+        <Btn kind="soft" block className="mt-16" onClick={() => { setBrief(false); go(`/c/patient/${p.id}`); }}>Open full record</Btn>
+      </Sheet>
+    </Screen>
+  );
+}
