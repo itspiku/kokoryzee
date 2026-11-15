@@ -166,3 +166,275 @@ const FRAG = /* glsl */ `
   }
 `;
 
+function dotTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.3, 'rgba(255,255,255,.6)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+export function createBrain(container, { onPick, theme = 'dark' } = {}) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.setClearColor(0x000000, 0);
+  container.appendChild(renderer.domElement);
+  renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:none;outline:none';
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
+  const home = new THREE.Vector3(-2.7, 1.05, 3.3);
+  camera.position.copy(home);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+  controls.enablePan = false;
+  controls.minDistance = 3.0;
+  controls.maxDistance = 8;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.7;
+  let resumeT = null;
+  controls.addEventListener('start', () => { controls.autoRotate = false; clearTimeout(resumeT); focusTween = null; });
+  controls.addEventListener('end', () => { resumeT = setTimeout(() => (controls.autoRotate = true), 4500); });
+
+  // mesh group
+  const root = new THREE.Group();
+  scene.add(root);
+
+  const regions = BRAIN_REGIONS;
+  const uRegions = regions.map((r) => new THREE.Vector4(r.pos[0], r.pos[1], r.pos[2], r.r));
+  const uniforms = {
+    uRegions: { value: uRegions },
+    uAct: { value: new Array(6).fill(0.5) },
+    uCols: { value: regions.map((r) => new THREE.Color(r.color)) },
+    uHeat: { value: 1 },
+    uAnat: { value: 0 },
+    uTime: { value: 0 },
+    uSel: { value: -1 },
+    uBase: { value: new THREE.Color(0.5, 0.64, 0.64) },
+  };
+  const mat = new THREE.ShaderMaterial({ uniforms, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: true });
+  const cortexGeo = buildCortex(40);
+  const cortex = new THREE.Mesh(cortexGeo, mat);
+  cortex.renderOrder = 2;
+  root.add(cortex);
+
+  const cere = new THREE.Mesh(buildCerebellum(), new THREE.ShaderMaterial({ uniforms: { ...uniforms, uBase: { value: new THREE.Color(0.4, 0.55, 0.57) } }, vertexShader: VERT, fragmentShader: FRAG, transparent: true }));
+  cere.position.set(0, -0.36, -0.78);
+  cere.renderOrder = 2;
+  root.add(cere);
+  const stem = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.42, 6, 16), new THREE.MeshBasicMaterial({ color: 0x46666a, transparent: true, opacity: 0.85 }));
+  stem.position.set(0, -0.52, -0.3);
+  stem.rotation.x = 0.35;
+  root.add(stem);
+
+  // deep glows
+  const dot = dotTexture();
+  const glows = regions.map((r) => {
+    if (!r.deep) return null;
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: new THREE.Color(r.color), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.6 }));
+    m.position.set(...r.pos);
+    m.scale.setScalar(r.r * 1.9);
+    m.renderOrder = 1;
+    root.add(m);
+    return m;
+  });
+
+  // ── find surface anchors by raycasting from outside toward the centre ──
+  const ray = new THREE.Raycaster();
+  const anchors = regions.map((r) => {
+    const dir = new THREE.Vector3(...r.pos).normalize();
+    ray.set(dir.clone().multiplyScalar(4), dir.clone().negate());
+    const hit = ray.intersectObject(cortex)[0];
+    return hit ? { p: hit.point.clone(), n: hit.face.normal.clone().transformDirection(cortex.matrixWorld) } : { p: new THREE.Vector3(...r.pos), n: dir };
+  });
+
+  // TMS marker at DLPFC
+  const tms = new THREE.Group();
+  const di = regions.findIndex((r) => r.id === 'dlpfc');
+  const a = anchors[di];
+  const tmsMat = new THREE.MeshBasicMaterial({ color: 0xffc46a, transparent: true, opacity: 0.95 });
+  const coil1 = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.012, 12, 48), tmsMat);
+  const coil2 = coil1.clone();
+  coil1.position.x = -0.1; coil2.position.x = 0.1;
+  const coilG = new THREE.Group();
+  coilG.add(coil1, coil2);
+  coilG.position.set(0, 0, 0.17);
+  const stemLine = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.34, 8), new THREE.MeshBasicMaterial({ color: 0xffc46a, transparent: true, opacity: 0.5 }));
+  stemLine.rotation.x = Math.PI / 2; stemLine.position.z = 0.17;
+  const pulse = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.006, 8, 64), new THREE.MeshBasicMaterial({ color: 0xffd9a0, transparent: true, opacity: 0.8 }));
+  tms.add(coilG, stemLine, pulse);
+  tms.position.copy(a.p);
+  tms.lookAt(a.p.clone().add(a.n));
+  tms.renderOrder = 4;
+  root.add(tms);
+
+  // ── connectivity ──
+  const linkGroup = new THREE.Group();
+  root.add(linkGroup);
+  let linkObjs = [];
+  const curves = {};
+  function setLinks(links) {
+    linkObjs.forEach((o) => { linkGroup.remove(o.line); o.line.geometry.dispose(); });
+    linkObjs = [];
+    links.forEach((l, k) => {
+      const ia = regions.findIndex((r) => r.id === l.a), ib = regions.findIndex((r) => r.id === l.b);
+      const A = new THREE.Vector3(...regions[ia].pos), B = new THREE.Vector3(...regions[ib].pos);
+      const mid = A.clone().add(B).multiplyScalar(0.5);
+      const out = mid.clone().normalize().multiplyScalar(0.28);
+      mid.add(out);
+      const curve = new THREE.QuadraticBezierCurve3(A, mid, B);
+      const geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(40));
+      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: new THREE.Color(regions[ia].color).lerp(new THREE.Color(regions[ib].color), 0.5), transparent: true, opacity: 0.15 + l.w * 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
+      line.renderOrder = 3;
+      linkGroup.add(line);
+      linkObjs.push({ line, curve, w: l.w, speed: 0.12 + l.w * 0.25, off: (k * 0.37) % 1 });
+    });
+    const pts = new Float32Array(linkObjs.length * 3);
+    pulsePts.geometry.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+  }
+  const pulsePts = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ map: dot, size: 0.14, color: 0xcffff2, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
+  pulsePts.renderOrder = 5;
+  pulsePts.frustumCulled = false;
+  root.add(pulsePts);
+
+  // ── ambient dust ──
+  const dust = new THREE.Points(
+    new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(Array.from({ length: 150 * 3 }, () => (Math.random() - 0.5) * 6)), 3)),
+    new THREE.PointsMaterial({ map: dot, size: 0.05, color: 0x9fe3d3, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  scene.add(dust);
+
+  // ── state ──
+  let layer = 'activity';
+  let selected = -1;
+  let target = new Array(6).fill(0.5);
+  let focusTween = null;
+  let running = true;
+
+  function setActivity(map) {
+    target = regions.map((r) => map[r.id] ?? 0.5);
+  }
+  function setLayer(l) {
+    layer = l;
+    linkGroup.visible = l === 'connectivity';
+    pulsePts.visible = l === 'connectivity';
+  }
+  function select(id) {
+    selected = regions.findIndex((r) => r.id === id);
+    uniforms.uSel.value = selected;
+  }
+  function focus(id) {
+    const i = regions.findIndex((r) => r.id === id);
+    if (i < 0) return;
+    const dir = (anchors[i] ? anchors[i].p.clone() : new THREE.Vector3(...regions[i].pos)).normalize();
+    const to = dir.multiplyScalar(regions[i].deep ? 4.4 : 4.1).add(new THREE.Vector3(dir.x * 0.4, 0.4, 0));
+    focusTween = { from: camera.position.clone(), to, t: 0 };
+    controls.autoRotate = false;
+    clearTimeout(resumeT);
+    resumeT = setTimeout(() => (controls.autoRotate = true), 6000);
+  }
+  function resetView() {
+    focusTween = { from: camera.position.clone(), to: home.clone(), t: 0 };
+  }
+
+  // ── picking ──
+  let down = null;
+  const el = renderer.domElement;
+  el.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+  el.addEventListener('pointerup', (e) => {
+    if (!down) return;
+    const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+    const quick = performance.now() - down.t < 400;
+    down = null;
+    if (moved > 6 || !quick) return;
+    const r = el.getBoundingClientRect();
+    const m = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(m, camera);
+    const hit = ray.intersectObject(cortex)[0];
+    if (!hit) return onPick?.(null);
+    let best = -1, bd = 1e9;
+    regions.forEach((rg, i) => {
+      const d = hit.point.distanceTo(new THREE.Vector3(...rg.pos)) / rg.r;
+      if (d < bd) { bd = d; best = i; }
+    });
+    onPick?.(bd < 1.5 ? regions[best].id : null);
+  });
+
+  // ── resize + loop ──
+  function resize() {
+    const w = container.clientWidth || 300, h = container.clientHeight || 300;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  const ro = new ResizeObserver(resize);
+  ro.observe(container);
+  resize();
+
+  const clock = new THREE.Clock();
+  let raf = 0;
+  const tmp = new THREE.Vector3();
+  function loop() {
+    raf = requestAnimationFrame(loop);
+    if (!running) return;
+    const dt = Math.min(0.05, clock.getDelta());
+    const t = clock.elapsedTime;
+    uniforms.uTime.value = t;
+    // ease activity
+    const cur = uniforms.uAct.value;
+    for (let i = 0; i < 6; i++) cur[i] += (target[i] - cur[i]) * Math.min(1, dt * 4);
+    uniforms.uHeat.value += ((layer === 'activity' ? 1 : layer === 'connectivity' ? 0.35 : 0) - uniforms.uHeat.value) * Math.min(1, dt * 5);
+    uniforms.uAnat.value += ((layer === 'anatomy' ? 1 : 0) - uniforms.uAnat.value) * Math.min(1, dt * 5);
+    glows.forEach((g, i) => {
+      if (!g) return;
+      const s = regions[i].r * (1.6 + cur[i] * 1.2) * (1 + 0.08 * Math.sin(t * 2 + i) + (selected === i ? 0.25 : 0));
+      g.scale.setScalar(s);
+      g.material.opacity = (0.15 + 0.6 * cur[i]) * (layer === 'activity' || layer === 'anatomy' ? 1 : 0.55);
+    });
+    // tms pulse
+    const ps = 1 + ((t * 0.9) % 1) * 1.4;
+    pulse.scale.setScalar(ps);
+    pulse.material.opacity = 0.8 * (1 - ((t * 0.9) % 1));
+    // links pulses
+    if (linkObjs.length && linkGroup.visible) {
+      const arr = pulsePts.geometry.attributes.position.array;
+      linkObjs.forEach((o, i) => {
+        const u = (t * o.speed + o.off) % 1;
+        o.curve.getPoint(u, tmp);
+        arr[i * 3] = tmp.x; arr[i * 3 + 1] = tmp.y; arr[i * 3 + 2] = tmp.z;
+      });
+      pulsePts.geometry.attributes.position.needsUpdate = true;
+    }
+    dust.rotation.y += dt * 0.02;
+    if (focusTween) {
+      focusTween.t = Math.min(1, focusTween.t + dt / 1.0);
+      const k = 1 - Math.pow(1 - focusTween.t, 3);
+      camera.position.lerpVectors(focusTween.from, focusTween.to, k);
+      if (focusTween.t >= 1) focusTween = null;
+    }
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  loop();
+
+  return {
+    setActivity, setLayer, setLinks, select, focus, resetView,
+    setRunning: (v) => (running = v),
+    dispose() {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      clearTimeout(resumeT);
+      controls.dispose();
+      scene.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
+      renderer.dispose();
+      renderer.domElement.remove();
+    },
+  };
+}
