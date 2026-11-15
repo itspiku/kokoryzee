@@ -106,3 +106,26 @@ export default function Overview() {
   );
 }
 
+function PatientRow({ r, i, compact }) {
+  const { p, d, status } = r;
+  const m = STATUS[status];
+  const drift = d.drift.slice(-28);
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 + i * 0.07, type: 'spring', stiffness: 120, damping: 18 }}>
+      <Card onClick={() => go(`/c/patient/${p.id}`)} className="pt-card" style={{ '--lvl': m.color }}>
+        <div className="pt-row">
+          <Avatar name={p.name} hue={p.hue} size={compact ? 44 : 52} ring />
+          <div className="grow">
+            <div className="row-flex between"><div className="h3">{p.name}</div><Spark values={drift} band={[-1, 1]} width={compact ? 70 : 84} height={30} color={m.color} /></div>
+            <div className="t-xs t-faint">{p.phase}</div>
+          </div>
+        </div>
+        <div className="row-flex between mt-12 wrap" style={{ gap: 8 }}>
+          <StatusPill s={status} />
+          {!compact && <span className="t-xs t-faint">confidence {d.analysis.confidence.toFixed(2)}</span>}
+        </div>
+        <div className="t-sm t-soft mt-8">{status === 'urgent' ? 'Direct request from the patient — please reach out.' : status === 'gap' ? `No wearable data for ${d.analysis.trailingGap} days.` : status === 'forming' ? `Baseline day ${d.series.length} of ~14.` : topShiftText(d.analysis)}</div>
+      </Card>
+    </motion.div>
+  );
+}
