@@ -175,3 +175,58 @@
   gap: 12px;
   padding: 14px 20px 4px;
 }
+.scrub .kz-range::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, #9fe3d3 var(--p), rgba(255, 255, 255, 0.14) var(--p));
+}
+.play-mini {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #8fd3c4;
+  color: #0b1b1b;
+  flex: none;
+}
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 16px 4px;
+}
+.region {
+  text-align: left;
+  padding: 10px 11px 9px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid transparent;
+  color: #e6f4f0;
+  transition: border-color 0.3s, background 0.3s;
+}
+.region.on {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 12%, transparent);
+}
+.region-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 10px var(--c);
+  display: inline-block;
+}
+.region-dot.big {
+  width: 14px;
+  height: 14px;
+}
+.region-val {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1.1;
+  margin-top: 4px;
+}
+.region-val small {
+  font-size: 12px;
+  opacity: 0.55;
+  margin-left: 1px;
+}
