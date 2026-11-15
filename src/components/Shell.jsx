@@ -56,3 +56,90 @@ const CLIN_TABS = [
   { id: 'trust', label: 'Trust', icon: 'ShieldCheck', to: '/c/trust' },
 ];
 
+export function TabBar({ role, active, dark, badges = {} }) {
+  const tabs = role === 'clinician' ? CLIN_TABS : PATIENT_TABS;
+  return (
+    <nav className="tabbar" data-theme={dark ? 'evening' : undefined} aria-label="Main">
+      {tabs.map((t) => {
+        const on = active === t.id;
+        if (t.center) {
+          return (
+            <button key={t.id} className="tab-help" onClick={() => { haptic(14); go(t.to); }} aria-label={t.label} style={role === 'clinician' ? { color: 'var(--primary)' } : undefined}>
+              <motion.span
+                className="orb"
+                whileTap={{ scale: 0.9 }}
+                animate={on ? { scale: 1.08 } : { scale: 1 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+                style={role === 'clinician' ? { background: 'radial-gradient(circle at 32% 28%, #9fe0d6, #3d8d84 72%)', boxShadow: '0 14px 28px -8px rgba(61,141,132,.7), 0 0 0 5px var(--tab-bg), inset 0 2px 0 rgba(255,255,255,.5)' } : undefined}
+              >
+                <Icon name={t.icon} size={28} stroke={2} />
+              </motion.span>
+              <span>{t.label}</span>
+            </button>
+          );
+        }
+        return (
+          <button key={t.id} className={`tab ${on ? 'active' : ''}`} onClick={() => { haptic(8); go(t.to); }} aria-current={on ? 'page' : undefined}>
+            <span className="tab-ico">
+              {on && <motion.span layoutId="tab-pill" className="tab-pill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+              <motion.span animate={on ? { y: -1, scale: 1.08 } : { y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} style={{ position: 'relative', zIndex: 1, display: 'grid' }}>
+                <Icon name={t.icon} size={23} stroke={on ? 2.2 : 1.8} />
+              </motion.span>
+              {badges[t.id] > 0 && <span className="badge">{badges[t.id]}</span>}
+            </span>
+            <span>{t.label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+// ── mini player ──
+export function MiniPlayer({ hidden }) {
+  const e = useEngine();
+  const last = useStore((s) => s.lastScene);
+  const scene = sceneById(e.sceneId || last);
+  const show = !hidden && (e.playing || (e.sceneId && engine.ctx && engine.ctx.state === 'suspended'));
+  return (
+    <AnimatePresence>
+      {show && scene && (
+        <motion.div
+          className="miniplayer"
+          initial={{ y: 80, opacity: 0, scale: 0.95 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+          onClick={() => go(`/p/player?scene=${scene.id}`)}
+          role="button"
+          aria-label={`Now playing ${scene.title}`}
+        >
+          <div style={{ width: 46, height: 46, borderRadius: 16, background: `linear-gradient(145deg, ${scene.grad[0]}, ${scene.grad[2]})`, position: 'relative', overflow: 'hidden', flex: 'none' }}>
+            <div className="eq">{[0, 1, 2, 3].map((i) => <i key={i} style={{ animationDelay: `${i * 0.18}s`, animationPlayState: e.playing ? 'running' : 'paused' }} />)}</div>
+          </div>
+          <div className="grow">
+            <div className="bold truncate" style={{ fontSize: 15 }}>{scene.title}</div>
+            <div className="t-xs" style={{ opacity: 0.7 }}>{e.playing ? 'Playing softly' : 'Paused'}</div>
+          </div>
+          <button
+            className="icon-btn"
+            style={{ background: 'rgba(255,255,255,.12)', border: 0, color: '#fff', boxShadow: 'none' }}
+            aria-label={e.playing ? 'Pause' : 'Play'}
+            onClick={(ev) => { ev.stopPropagation(); e.playing ? engine.pause() : engine.resumePlayback(); }}
+          >
+            <Icon name={e.playing ? 'Pause' : 'Play'} size={20} />
+          </button>
+          <button
+            className="icon-btn"
+            style={{ background: 'rgba(255,255,255,.08)', border: 0, color: '#fff', boxShadow: 'none', width: 38, height: 38 }}
+            aria-label="Stop"
+            onClick={(ev) => { ev.stopPropagation(); engine.stop(1.2); }}
+          >
+            <Icon name="X" size={18} />
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
