@@ -262,3 +262,33 @@ export function CircadianRings({ series, size = 260, nights = 7 }) {
   );
 }
 
+export function Ring({ value = 0.6, size = 64, stroke = 8, color = 'var(--primary-2)', track = 'var(--line)', children }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flex: 'none' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
+        <motion.circle
+          cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeLinecap="round"
+          strokeDasharray={c}
+          initial={{ strokeDashoffset: c }}
+          animate={{ strokeDashoffset: c * (1 - clamp(value)) }}
+          transition={{ duration: 1.3, ease: [0.22, 0.8, 0.28, 1], delay: 0.2 }}
+        />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>{children}</div>
+    </div>
+  );
+}
+
+/** A soft "wave" glyph used as a texture inside metric cards */
+export function SoftWave({ color = 'var(--primary-2)', height = 36, seed = 1 }) {
+  const pts = Array.from({ length: 12 }, (_, i) => [i * 30, 18 + Math.sin(i * 0.9 + seed) * 9 + Math.cos(i * 0.4 + seed * 2) * 5]);
+  const d = smoothPath(pts, 1);
+  return (
+    <svg viewBox="0 0 330 36" preserveAspectRatio="none" width="100%" height={height} style={{ overflow: 'visible' }}>
+      <motion.path d={d} stroke={color} strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.6, ease: 'easeOut' }} />
+    </svg>
+  );
+}
