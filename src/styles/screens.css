@@ -458,3 +458,58 @@
   flex: none;
   box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.55);
 }
+.thumb-shine {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.35), transparent 55%);
+}
+.feature {
+  position: relative;
+  height: 262px;
+  border-radius: 32px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 24px 50px -22px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+.feature-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.0) 35%, rgba(0, 0, 0, 0.5));
+}
+.feature-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+.feature-bottom {
+  position: absolute;
+  left: 20px;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+.play-fab {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1b2a22;
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+}
+.for-you {
+  display: flex;
+  flex-direction: column;
+  width: 148px;
+  text-align: left;
+}
+.sound-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
