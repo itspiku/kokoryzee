@@ -156,3 +156,33 @@
   --tab-bg: rgba(18, 31, 26, 0.78);
   --sheet-bg: #15251f;
 }
+
+/* ── Clinician: cooler, clearer "clinic morning" ─────────── */
+[data-role='clinician'][data-theme='day'] {
+  --paper: #eff3ee;
+  --paper-2: #e6eee9;
+  --paper-3: #dae7e1;
+  --bg-grad: linear-gradient(180deg, #f2f5f0 0%, #e8f0eb 60%, #dfeae5 100%);
+  --primary: #3d7a74;
+  --primary-2: #4f9189;
+  --primary-soft: rgba(79, 145, 137, 0.14);
+  --blob-a: #c6e4dc;
+  --blob-b: #e3e0f3;
+  --blob-c: #f7e3cf;
+  --chart-line: #3d7a74;
+  --chart-band: rgba(79, 145, 137, 0.18);
+  --tab-bg: rgba(245, 248, 244, 0.82);
+}
+[data-role='clinician'][data-theme='evening'] {
+  --paper: #0d1819;
+  --paper-2: #112224;
+  --bg-grad: linear-gradient(180deg, #0c1718 0%, #102022 60%, #12282a 100%);
+  --primary: #8ccdc4;
+  --primary-2: #a5ddd5;
+  --primary-soft: rgba(140, 205, 196, 0.16);
+  --blob-a: #1f5a58;
+  --blob-b: #3b3a68;
+  --blob-c: #5b4a3a;
+  --chart-line: #98d6cd;
+  --chart-band: rgba(140, 205, 196, 0.16);
+}
