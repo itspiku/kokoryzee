@@ -279,3 +279,83 @@ function Timeline({ p, d }) {
   );
 }
 
+// ───────────────────────────── Care plan
+function CarePlan({ p }) {
+  const plan = useStore((s) => s.carePlans[p.id]);
+  const [notes, setNotes] = useState(plan.notes);
+  const [esc, setEsc] = useState(plan.escalation);
+  useEffect(() => { setNotes(plan.notes); setEsc(plan.escalation); }, [p.id]);
+  const on = INTERVENTIONS.filter((i) => plan.approved[i.id]).length;
+  return (
+    <div>
+      <Card tint="sage" className="row-flex gap-12">
+        <div className="ico-dot lg" style={{ background: 'var(--glass-soft)' }}><Icon name="ShieldCheck" size={24} /></div>
+        <div className="grow t-sm t-soft"><b>{on} of {INTERVENTIONS.length} supports approved.</b> {p.name.split(' ')[0]} is only ever offered approved supports. Pausing one removes it from their app immediately.</div>
+      </Card>
+      <div className="stack gap-8 mt-16">
+        {INTERVENTIONS.map((i, k) => (
+          <motion.div key={i.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: k * 0.04 }}>
+            <Card tight className="row-flex gap-12">
+              <div className="ico-dot"><Icon name={i.icon} size={19} /></div>
+              <div className="grow"><div className="bold t-sm">{i.label}</div><div className="t-xs t-faint">{i.blurb}</div></div>
+              <Switch on={plan.approved[i.id]} onChange={() => actions.toggleCare(p.id, i.id)} label={i.label} />
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+      <SectionTitle>Notes & escalation</SectionTitle>
+      <Card className="stack gap-12">
+        <div><div className="t-cap mb-8">Note to the care plan</div><textarea className="field" style={{ minHeight: 90 }} value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={() => notes !== plan.notes && actions.setCareField(p.id, 'notes', notes)} /></div>
+        <div><div className="t-cap mb-8">Escalation procedure</div><textarea className="field" style={{ minHeight: 100 }} value={esc} onChange={(e) => setEsc(e.target.value)} onBlur={() => esc !== plan.escalation && actions.setCareField(p.id, 'escalation', esc)} /></div>
+        <div className="row-flex between t-xs t-faint"><span>Last updated {timeAgo(plan.updatedAt)}</span><span>Responsible: {DOCTOR.name}</span></div>
+      </Card>
+    </div>
+  );
+}
+
+// ───────────────────────────── Response history
+export function pseudoStats(p) {
+  const rng = mulberry32(p.seed * 991);
+  const kinds = [['sound:forest-rain', 'Forest rain'], ['sound:evening-meditation', 'Evening meditation'], ['breathing:gentle', 'Gentle breathing'], ['outing:walk', 'A short walk outside'], ['circle:call', 'Talking with someone close'], ['journal:write', 'Journaling']];
+  const out = {};
+  kinds.forEach(([k, l]) => {
+    const n = 3 + Math.floor(rng() * 12);
+    const rate = 0.35 + rng() * 0.6;
+    const o = { kind: k, label: l, yes: 0, some: 0, no: 0, n, hours: [] };
+    for (let i = 0; i < n; i++) { const r = rng(); if (r < rate * 0.7) o.yes++; else if (r < rate) o.some++; else o.no++; o.hours.push(Math.floor(6 + rng() * 17)); }
+    o.rate = (o.yes + 0.5 * o.some) / n;
+    o.helpedCount = o.yes + o.some;
+    out[k] = o;
+  });
+  return out;
+}
+const bucket = (h) => (h < 12 ? 'mornings' : h < 17 ? 'afternoons' : h < 21 ? 'evenings' : 'nights');
+
+function Response({ p }) {
+  const feedback = useStore((s) => s.feedback);
+  const stats = useMemo(() => Object.values(p.id === 'alex' ? responseStats(feedback) : pseudoStats(p)).sort((a, b) => b.rate - a.rate), [feedback, p]);
+  return (
+    <div>
+      <p className="t-sm t-soft mb-12">What {p.name.split(' ')[0]} has told Kokoryze helps — their own feedback after each support, never compared with other patients.</p>
+      <div className="stack gap-10">
+        {stats.map((s, i) => {
+          const hb = s.hours.reduce((m, h) => ((m[bucket(h)] = (m[bucket(h)] || 0) + 1), m), {});
+          const best = Object.entries(hb).sort((a, b) => b[1] - a[1])[0];
+          return (
+            <InView key={s.kind} delay={i * 0.04}>
+              <Card tight>
+                <div className="row-flex between"><div className="bold">{s.label}</div><span className="serif" style={{ fontSize: 22 }}>{Math.round(s.rate * 100)}<small style={{ fontSize: 12, opacity: 0.6 }}>%</small></span></div>
+                <div className="stack-bar mt-8">
+                  <motion.i style={{ background: 'var(--primary-2)' }} initial={{ width: 0 }} whileInView={{ width: `${(s.yes / s.n) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9 }} />
+                  <motion.i style={{ background: 'var(--sage-300)' }} initial={{ width: 0 }} whileInView={{ width: `${(s.some / s.n) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.1 }} />
+                  <motion.i style={{ background: 'var(--line-2)' }} initial={{ width: 0 }} whileInView={{ width: `${(s.no / s.n) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.2 }} />
+                </div>
+                <div className="row-flex between t-xs t-faint mt-8"><span>{s.yes} yes · {s.some} a little · {s.no} no ({s.n} uses)</span>{best && <span>best in {best[0]}</span>}</div>
+              </Card>
+            </InView>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
