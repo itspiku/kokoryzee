@@ -97,3 +97,72 @@ function buildCortex(detail = 40) {
   return g;
 }
 
+function buildCerebellum() {
+  const g = new THREE.SphereGeometry(1, 64, 48);
+  const pos = g.attributes.position;
+  const sulc = new Float32Array(pos.count);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const ridge = 0.5 + 0.5 * Math.sin(y * 46 + Math.sin(x * 4) * 1.5);
+    const r = 1 + 0.045 * ridge;
+    pos.setXYZ(i, x * 0.46 * r, y * 0.2 * r, z * 0.3 * r);
+    sulc[i] = 1 - ridge * 0.8;
+  }
+  g.setAttribute('aSulc', new THREE.BufferAttribute(sulc, 1));
+  g.computeVertexNormals();
+  return g;
+}
+
+// ── shader ──
+const VERT = /* glsl */ `
+  attribute float aSulc;
+  varying vec3 vPos; varying vec3 vN; varying vec3 vV; varying float vSulc;
+  void main(){
+    vPos = position;
+    vSulc = aSulc;
+    vec4 mv = modelViewMatrix * vec4(position,1.0);
+    vN = normalize(normalMatrix * normal);
+    vV = normalize(-mv.xyz);
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+const FRAG = /* glsl */ `
+  precision highp float;
+  uniform vec4 uRegions[6];
+  uniform float uAct[6];
+  uniform vec3 uCols[6];
+  uniform float uHeat; uniform float uAnat; uniform float uTime; uniform float uSel; uniform vec3 uBase;
+  varying vec3 vPos; varying vec3 vN; varying vec3 vV; varying float vSulc;
+  void main(){
+    vec3 N = normalize(vN); vec3 V = normalize(vV);
+    float fres = pow(1.0 - max(dot(N,V),0.0), 2.3);
+    vec3 L1 = normalize(vec3(-0.55,0.85,0.65));
+    vec3 L2 = normalize(vec3(0.7,0.1,-0.6));
+    float dif = max(dot(N,L1),0.0)*0.62 + max(dot(N,L2),0.0)*0.22 + 0.34;
+    vec3 col = uBase * dif;
+    col *= 1.0 - 0.62*vSulc;
+    vec3 hc = vec3(0.0); float hw = 0.0;
+    vec3 anat = vec3(0.0);
+    for(int i=0;i<6;i++){
+      float d = distance(vPos, uRegions[i].xyz) / uRegions[i].w;
+      float w = exp(-d*d*2.1);
+      float a = uAct[i];
+      vec3 lowC = vec3(0.30,0.42,0.88);
+      vec3 midC = vec3(0.22,0.82,0.70);
+      vec3 hiC  = vec3(1.0,0.72,0.32);
+      vec3 c = a < 0.5 ? mix(lowC, midC, smoothstep(0.15,0.5,a)) : mix(midC, hiC, smoothstep(0.5,0.85,a));
+      float sel = 1.0 + step(abs(uSel-float(i)),0.5) * (0.3 + 0.2*sin(uTime*3.4));
+      float wt = w * (0.45 + 0.8*a) * sel;
+      hc += c * wt; hw += wt;
+      anat += uCols[i] * w * 0.7 * (1.0 + step(abs(uSel-float(i)),0.5)*0.6);
+    }
+    vec3 hcol = hc / max(hw, 0.0001);
+    col = mix(col, hcol * (0.75 + 0.35*dif) * (1.0 - 0.45*vSulc), smoothstep(0.04, 0.55, hw) * 0.85 * uHeat);
+    col += hcol * hw * 0.22 * uHeat;
+    col = mix(col, anat * (0.7+0.4*dif) + col*0.35, clamp(length(anat),0.0,1.0) * uAnat);
+    col += vec3(0.42,0.9,0.82) * fres * 0.62;
+    float alpha = 0.8 + 0.2*fres;
+    gl_FragColor = vec4(col, alpha);
+  }
+`;
+
