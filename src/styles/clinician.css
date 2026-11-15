@@ -1,0 +1,59 @@
+/* ───────── digital twin workspace ───────── */
+.twin {
+  position: relative;
+  color: var(--ink);
+  background: linear-gradient(180deg, #0c1819 0%, #102426 55%, #0f1f22 100%);
+  border-radius: 32px;
+  padding: 14px 0 22px;
+  margin: 0 -4px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -30px rgba(10, 30, 32, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+.twin > * {
+  position: relative;
+}
+.twin .chip.dark {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #cfe4df;
+  padding-left: 8px;
+}
+.twin .chip.dark.on {
+  background: #8fd3c4;
+  color: #0b1b1b;
+}
+.exp-banner {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin: 0 16px 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(240, 179, 90, 0.12);
+  border: 1px solid rgba(240, 179, 90, 0.28);
+  color: #f2d49b;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.exp-banner svg {
+  flex: none;
+  margin-top: 2px;
+}
+.twin-stage {
+  position: relative;
+}
+.brain-wrap {
+  position: relative;
+  margin: 0 8px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 42%, rgba(60, 150, 140, 0.22), rgba(10, 28, 30, 0) 65%);
+}
+.brain-glow {
+  position: absolute;
+  inset: 12% 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(143, 211, 196, 0.2), transparent 70%);
+  filter: blur(30px);
+  animation: koko-glow 6s var(--ease-breath) infinite alternate;
+}
