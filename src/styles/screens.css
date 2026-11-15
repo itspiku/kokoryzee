@@ -575,3 +575,62 @@
   margin-bottom: 14px;
   width: fit-content;
 }
+.help-ask button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 650;
+  font-size: 13px;
+}
+
+/* ── voice ── */
+.voice-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 22px;
+  background: var(--primary-soft);
+}
+.vp-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--primary);
+  color: var(--primary-ink);
+  box-shadow: var(--shadow-btn);
+}
+
+/* ── journal ── */
+.journal-hello {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 8px;
+}
+.journal-hello .speech {
+  position: relative;
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 22px 22px 22px 6px;
+  background: var(--card-solid);
+  box-shadow: var(--shadow-card);
+}
+.prompt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+.prompt-card {
+  min-height: 132px;
+}
+.clamp2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
