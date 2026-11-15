@@ -132,3 +132,39 @@ export function driftSeries(series, opts = {}) {
   return out;
 }
 
+/** Simple damped-trend projection with widening uncertainty. */
+export function project(values, horizon = 14) {
+  const v = values.filter(isNum);
+  const last = v.slice(-8);
+  if (last.length < 4) return { mid: [], lo: [], hi: [] };
+  const n = last.length;
+  const xm = (n - 1) / 2;
+  const ym = mean(last);
+  let num = 0,
+    den = 0;
+  last.forEach((y, i) => {
+    num += (i - xm) * (y - ym);
+    den += (i - xm) ** 2;
+  });
+  const slope = den ? num / den : 0;
+  const resid = Math.sqrt(mean(last.map((y, i) => (y - (ym + slope * (i - xm))) ** 2))) || 0.3;
+  const start = last[n - 1];
+  const mid = [],
+    lo = [],
+    hi = [];
+  let level = start;
+  let s = slope;
+  for (let h = 1; h <= horizon; h++) {
+    s *= 0.86; // damp
+    level += s;
+    const sd = resid * (1 + 0.38 * h) + 0.05 * h;
+    mid.push(level);
+    lo.push(level - sd * 1.3);
+    hi.push(level + sd * 1.3);
+  }
+  return { mid, lo, hi, slope, resid };
+}
+
+export function totalDays(series) {
+  return sum(series.map((r) => (r.wear ? 1 : 0)));
+}
