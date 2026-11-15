@@ -1216,3 +1216,65 @@
   border: 2px solid;
   opacity: 0;
 }
+.vc-name {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+  font-size: 26px;
+  position: relative;
+}
+.vc-time {
+  opacity: 0.7;
+  margin-top: 2px;
+  position: relative;
+}
+.vc-enc {
+  position: relative;
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.vc-self {
+  position: absolute;
+  right: 16px;
+  top: calc(var(--safe-top) + 16px);
+  width: 104px;
+  height: 140px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #26423a, #172a25);
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.6), 0 0 0 1.5px rgba(255, 255, 255, 0.16);
+  z-index: 5;
+  touch-action: none;
+}
+.vc-selfph {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+.vc-selflabel {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+.vc-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px 20px calc(var(--safe-bottom) + 24px);
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.5));
+  z-index: 6;
+}
